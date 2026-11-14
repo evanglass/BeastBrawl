@@ -21,6 +21,14 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField]
     private Vector2 wallNormal;
 
+    [SerializeField]
+    private ContactPoint2D[] contacts = new ContactPoint2D[10];
+
+    public int Facing { get; private set; }
+    public bool OnFloor => onFloor;
+    public bool OnWall => onWall;
+    public Vector2 WallNormal => wallNormal;
+
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -28,6 +36,7 @@ public class PlayerMove : NetworkBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerState = GetComponent<PlayerState>();
         rb.gravityScale = GameGlobals.Instance.gravityScale;
+        Facing = 1;
     }
 
     public override void OnNetworkSpawn()
@@ -46,6 +55,11 @@ public class PlayerMove : NetworkBehaviour
         float horizontal = playerInput.actions["Move"].ReadValue<Vector2>().x;
         bool jump = playerInput.actions["Jump"].WasPressedThisFrame();
 
+        if (horizontal != 0f)
+        {
+            Facing = (int)Mathf.Sign(horizontal);
+        }
+
         bridge.SetMoveHorizontalServerRpc(horizontal);
         
         if (jump)
@@ -56,7 +70,15 @@ public class PlayerMove : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (!IsSpawned || !IsServer)
+        if (!IsSpawned)
+            return;
+
+        if (!IsOwner && bridge.MoveHorizontal != 0f)
+        {
+            Facing = (int)Mathf.Sign(bridge.MoveHorizontal);
+        }
+
+        if (!IsServer)
             return;
 
         CheckContacts();
@@ -76,7 +98,7 @@ public class PlayerMove : NetworkBehaviour
 
         float yVelocity = rb.linearVelocity.y;
 
-        if (onWall && yVelocity < -GameGlobals.Instance.wallSlidingSpeed)
+        if (onWall && Mathf.Abs(bridge.MoveHorizontal) > 0f && yVelocity < -GameGlobals.Instance.wallSlidingSpeed)
         {
             yVelocity = -GameGlobals.Instance.wallSlidingSpeed;
         }
@@ -121,8 +143,6 @@ public class PlayerMove : NetworkBehaviour
 
         onFloor = false;
         onWall = false;
-
-        ContactPoint2D[] contacts = new ContactPoint2D[10];
 
         int contactCount = rb.GetContacts(contacts);
 

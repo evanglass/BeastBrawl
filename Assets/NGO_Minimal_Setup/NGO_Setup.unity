@@ -295,6 +295,9 @@ MonoBehaviour:
   wallSlidingSpeed: 0.5
   wallJumpForce: 10
   maxJumps: 2
+  punchDamage: 20
+  punchCooldown: 0.2
+  punchKnockback: {x: 20, y: 10}
 --- !u!4 &995121295
 Transform:
   m_ObjectHideFlags: 0
@@ -549,8 +552,8 @@ Transform:
   m_GameObject: {fileID: 1932317986}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.5725, y: 0.3651, z: 0}
-  m_LocalScale: {x: 0.855, y: -3.7302, z: 1}
+  m_LocalPosition: {x: -4.5725, y: 0.8844, z: 0}
+  m_LocalScale: {x: 0.855, y: -4.7686877, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

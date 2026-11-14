@@ -91,4 +91,34 @@ public class PlayerNetworkBridge : NetworkBehaviour
         Jump = false;
         return val;
     }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestPunchServerRpc()
+    {
+        Punch = true;
+    }
+
+    public bool ConsumePunchRequest()
+    {
+        if (!IsServer)
+            return false;
+        bool val = Punch;
+        Punch = false;
+        return val;
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestBeastServerRpc()
+    {
+        Beast = true;
+    }
+
+    public bool ConsumeBeastRequest()
+    {
+        if (!IsServer)
+            return false;
+        bool val = Beast;
+        Beast = false;
+        return val;
+    }
 }

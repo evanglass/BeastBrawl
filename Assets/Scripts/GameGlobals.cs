@@ -15,6 +15,11 @@ public class GameGlobals : MonoBehaviour
     public float wallJumpForce = 5f;
     public int maxJumps = 2;
 
+    [Header("Damage")]
+    public float punchDamage = 20f;
+    public float punchCooldown = 1f;
+    public Vector2 punchKnockback = new Vector2(20, 40);
+
     public static GameGlobals Instance { get; private set; }
 
     private void Awake()
