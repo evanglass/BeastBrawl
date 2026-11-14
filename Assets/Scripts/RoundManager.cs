@@ -101,10 +101,14 @@ public class RoundManager : NetworkBehaviour
         }
 
         var randomIndices = Enumerable.Range(0, spawnPositions.Count).OrderBy(x => Random.value).ToArray();
+        var characters = Enumerable.Range(0, 4).OrderBy(x => Random.value).ToArray();
 
         for (int i = 0; i < players.Count; i++)
         {
             var playerObject = players[i];
+            var visual = playerObject.GetComponent<PlayerVisual>();
+            if (visual != null)
+                visual.AssignCharacter(characters[i % characters.Length]);
             
             var spawnPosition = spawnPositions[randomIndices[i % spawnPositions.Count]];
 

@@ -48,7 +48,7 @@ public class PlayerPunch : NetworkBehaviour
         if (!IsSpawned)
             return;
 
-        punchPivot.localScale = new Vector3(playerMove.Facing, 1f, 1f);
+        punchPivot.localScale = new Vector3(bridge.Facing, 1f, 1f);
         
         if (!IsServer)
             return;
@@ -86,12 +86,12 @@ public class PlayerPunch : NetworkBehaviour
             PlayerPunch otherPunch = other.GetComponent<PlayerPunch>();
             if (otherPunch != null)
             {
-                otherPunch.ApplyPunch(playerMove);
+                otherPunch.ApplyPunch(bridge);
             }
         }
     }
 
-    private void ApplyPunch(PlayerMove attacker)
+    private void ApplyPunch(PlayerNetworkBridge attacker)
     {
         if (!IsSpawned || !IsServer)
             return;

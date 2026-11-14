@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerNetworkBridge : NetworkBehaviour
 {
     private PlayerState playerState;
+    private PlayerMove playerMove;
     private Rigidbody2D rb;
 
     [SerializeField]
@@ -21,6 +22,13 @@ public class PlayerNetworkBridge : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    [SerializeField]
+    private NetworkVariable<int> facing = new(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     public float MoveHorizontal { get; private set; }
     public bool Jump { get; private set; }
     public bool Punch { get; private set; }
@@ -30,9 +38,12 @@ public class PlayerNetworkBridge : NetworkBehaviour
 
     public bool Eliminated => eliminated.Value;
 
+    public int Facing => facing.Value;
+
     private void Awake()
     {
         playerState = GetComponent<PlayerState>();
+        playerMove = GetComponent<PlayerMove>();
         rb = GetComponent<Rigidbody2D>();
     }
 
@@ -68,6 +79,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
 
         isConscious.Value = playerState.IsConscious;
         eliminated.Value = playerState.Eliminated;
+        facing.Value = playerMove.Facing;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
