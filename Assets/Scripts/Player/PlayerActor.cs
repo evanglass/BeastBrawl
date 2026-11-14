@@ -21,8 +21,13 @@ public class PlayerActor : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!serverSimulated)
+        if (!serverSimulated || playerState.Eliminated)
             return;
+
+        if (transform.position.y < GameGlobals.Instance.boundaryY)
+        {
+            playerState.Eliminate();
+        }
 
         playerState.ServerTickRecovery(Time.fixedDeltaTime);
     }

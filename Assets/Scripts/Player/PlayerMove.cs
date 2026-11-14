@@ -81,11 +81,17 @@ public class PlayerMove : NetworkBehaviour
         if (!IsServer)
             return;
 
+        if (playerState.Eliminated)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
         CheckContacts();
 
         bool wantsJump = bridge.ConsumeJumpRequest();
 
-        if (!playerState.IsConscious || playerState.Eliminated)
+        if (!playerState.IsConscious)
             return;
 
         float targetSpeed = bridge.MoveHorizontal * GameGlobals.Instance.moveSpeed;

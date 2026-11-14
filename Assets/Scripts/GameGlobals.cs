@@ -5,6 +5,7 @@ public class GameGlobals : MonoBehaviour
     [Header("Consciousness")]
     public float consciousnessRecoveryRate = 5f;
     public float consciousnessLossMultiplier = 2f;
+    public float boundaryY = -10f;
 
     [Header("Movement")]
     public float moveSpeed = 7f;
