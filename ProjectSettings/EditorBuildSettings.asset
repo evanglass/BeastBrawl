@@ -12,5 +12,6 @@ EditorBuildSettings:
     path: Assets/NGO_Minimal_Setup/NGO_Setup.unity
     guid: 1c50941ff004fcf4fa047dd5a6adafc3
   m_configObjects:
+    com.unity.input.settings: {fileID: 11400000, guid: cb42d5f5012c7f24395d97d2c29e28cf, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
