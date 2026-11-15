@@ -124,8 +124,10 @@ public class RoundManager : NetworkBehaviour
         if (!roundPrepared)
         {
             List<EagleCorner> eagleCorners = FindObjectsByType<EagleCorner>(FindObjectsSortMode.None).ToList();
-            eagleLeftCorner = eagleCorners.FirstOrDefault(c => c.LeftCorner)?.transform;
-            eagleRightCorner = eagleCorners.FirstOrDefault(c => !c.LeftCorner)?.transform;
+            var leftCorner = eagleCorners.FirstOrDefault(c => c.LeftCorner);
+            var rightCorner = eagleCorners.FirstOrDefault(c => !c.LeftCorner);
+            if (leftCorner != null) eagleLeftCorner = leftCorner.transform;
+            if (rightCorner != null) eagleRightCorner = rightCorner.transform;
 
             var randomIndices = Enumerable.Range(0, spawnPositions.Count).OrderBy(x => Random.value).ToArray();
             var characters = Enumerable.Range(0, 4).OrderBy(x => Random.value).ToArray();
@@ -168,7 +170,8 @@ public class RoundManager : NetworkBehaviour
     {
         int nonEliminatedPlayers = players.Count(p => p != null && !p.GetComponent<PlayerState>().Eliminated);
 
-        if (nonEliminatedPlayers <= 1)
+        // A one-player round is useful for practicing and testing controls.
+        if (nonEliminatedPlayers <= (playersPerRound == 1 ? 0 : 1))
         {
             CurrentState = RoundState.RoundEnding;
         }
