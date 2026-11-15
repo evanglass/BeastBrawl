@@ -9,6 +9,8 @@ public class PlayerMove : NetworkBehaviour
     private PlayerBeast playerBeast;
     private Rigidbody2D rb;
     private PlayerState playerState;
+    private PlayerVisual visual;
+    private bool hasTouchedGround;
 
     [SerializeField]
     private int jumpsRemain;
@@ -37,6 +39,7 @@ public class PlayerMove : NetworkBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerState = GetComponent<PlayerState>();
         playerBeast = GetComponent<PlayerBeast>();
+        visual = GetComponent<PlayerVisual>();
         rb.gravityScale = GameGlobals.Instance.gravityScale;
         Facing = 1;
     }
@@ -47,6 +50,7 @@ public class PlayerMove : NetworkBehaviour
             return;
 
         jumpsRemain = GameGlobals.Instance.maxJumps;
+        hasTouchedGround = false;
     }
 
     private void Update()
@@ -89,7 +93,14 @@ public class PlayerMove : NetworkBehaviour
             return;
         }
 
+        bool wasOnFloor = onFloor;
         CheckContacts();
+        if (onFloor && !wasOnFloor)
+        {
+            if (hasTouchedGround)
+                visual.PlayEffectRpc(CharacterSfxManager.Effect.Land);
+            hasTouchedGround = true;
+        }
 
         bool wantsJump = bridge.ConsumeJumpRequest();
 
@@ -125,6 +136,7 @@ public class PlayerMove : NetworkBehaviour
             rb.linearVelocity = new Vector2(xVelocity, 0f);
             rb.AddForce(Vector2.up * GameGlobals.Instance.jumpForce, ForceMode2D.Impulse);
             jumpsRemain--;
+            visual.PlayEffectRpc(CharacterSfxManager.Effect.Jump);
         }
     }
 

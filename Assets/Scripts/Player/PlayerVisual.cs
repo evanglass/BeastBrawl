@@ -58,10 +58,23 @@ public class PlayerVisual : NetworkBehaviour
         spriteRenderer.flipX = Facing < 0;
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    public void PlayEffectRpc(CharacterSfxManager.Effect effect)
+    {
+        PlayLocalEffect(effect);
+    }
+
+    private void PlayLocalEffect(CharacterSfxManager.Effect effect)
+    {
+        if (CharacterSfxManager.Instance != null)
+            CharacterSfxManager.Instance.Play(PlayerCharacter, effect, transform.position);
+    }
+
     [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
     public void PlayPunchRpc()
     {
         animator.SetTrigger("Punch");
+        PlayLocalEffect(CharacterSfxManager.Effect.Attack);
     }
 
     public void AssignCharacter(int characterIndex)

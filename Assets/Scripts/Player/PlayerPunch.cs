@@ -72,6 +72,8 @@ public class PlayerPunch : NetworkBehaviour
         cooldown = GameGlobals.Instance.punchCooldown * playerBeast.GetPunchCooldownMultiplier();
         if (!playerBeast.AutoAttack)
             GetComponent<PlayerVisual>().PlayPunchRpc();
+        else
+            GetComponent<PlayerVisual>().PlayEffectRpc(CharacterSfxManager.Effect.Attack);
 
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(LayerMask.GetMask("Players"));
@@ -101,6 +103,8 @@ public class PlayerPunch : NetworkBehaviour
     {
         if (!IsSpawned || !IsServer)
             return;
+        if (playerState.IsConscious && !playerState.Eliminated)
+            GetComponent<PlayerVisual>().PlayEffectRpc(CharacterSfxManager.Effect.Hit);
         playerState.Punch(GameGlobals.Instance.punchDamage * punchDamageMultiplier);
 
         Vector2 knockback = new Vector2(
