@@ -7,6 +7,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
     private PlayerState playerState;
     private PlayerMove playerMove;
     private Rigidbody2D rb;
+    private NetworkVariable<bool> walking = new(false);
 
     [SerializeField]
     private NetworkVariable<bool> isConscious = new(
@@ -39,6 +40,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
     public bool Eliminated => eliminated.Value;
 
     public int Facing => facing.Value;
+    public bool Walking => walking.Value;
 
     private void Awake()
     {
@@ -80,6 +82,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
         isConscious.Value = playerState.IsConscious;
         eliminated.Value = playerState.Eliminated;
         facing.Value = playerMove.Facing;
+        walking.Value = Mathf.Abs(rb.linearVelocity.x) > 0.1f;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]

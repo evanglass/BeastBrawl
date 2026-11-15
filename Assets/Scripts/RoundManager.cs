@@ -108,7 +108,7 @@ public class RoundManager : NetworkBehaviour
             var playerObject = players[i];
             var visual = playerObject.GetComponent<PlayerVisual>();
             if (visual != null)
-                visual.AssignCharacter(characters[i % characters.Length]);
+                visual.AssignCharacter(characters[i % characters.Length] + 1);
             
             var spawnPosition = spawnPositions[randomIndices[i % spawnPositions.Count]];
 
