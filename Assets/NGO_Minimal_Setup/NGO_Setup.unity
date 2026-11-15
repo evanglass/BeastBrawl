@@ -149,8 +149,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   port: 7777
-  onlineAddress: beastnet.evanglass.me
-  onlinePort: 18773
+  onlineAddress: 129.146.35.223.sslip.io
+  onlinePort: 443
   dedicatedServerPort: 18774
   discoveryPort: 47777
   discoveryDuration: 2
@@ -300,10 +300,10 @@ MonoBehaviour:
     playerNumber: {fileID: 800100243}
     iconLabel: {fileID: 800100273}
     portrait: {fileID: 800101033}
-  eaglePortrait: {fileID: 652153416576946007, guid: 04ca9dea99bcd0a44b2076c97fcb90d0, type: 3}
-  bearPortrait: {fileID: -7684440136785613909, guid: 8cda945ee219d25489f735abdae86e97, type: 3}
-  cougarPortrait: {fileID: 4890254853050067019, guid: 28fc0eed5c4734347a12874823320424, type: 3}
-  snakePortrait: {fileID: 8425378917301952020, guid: c7cba1bf9366f544db86f6c2417de2d9, type: 3}
+  eaglePortrait: {fileID: 21300004, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
+  bearPortrait: {fileID: 21300002, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
+  cougarPortrait: {fileID: 21300003, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
+  snakePortrait: {fileID: 21300001, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
   emptyCardColor: {r: 0.082353, g: 0.113725, b: 0.156863, a: 1}
   playerCardColor: {r: 0.145098, g: 0.227451, b: 0.368627, a: 1}
   localCardColor: {r: 0.235294, g: 0.368627, b: 0.545098, a: 1}
@@ -4031,31 +4031,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103130}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25CF"
+  m_Sprite: {fileID: 21300001, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103140
 GameObject:
   m_ObjectHideFlags: 0
@@ -4110,31 +4106,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103140}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25B2"
+  m_Sprite: {fileID: 21300002, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103150
 GameObject:
   m_ObjectHideFlags: 0
@@ -4189,31 +4181,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103150}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25C6"
+  m_Sprite: {fileID: 21300003, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103200
 GameObject:
   m_ObjectHideFlags: 0
@@ -4462,31 +4450,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103230}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25CF"
+  m_Sprite: {fileID: 21300001, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103240
 GameObject:
   m_ObjectHideFlags: 0
@@ -4541,31 +4525,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103240}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25B2"
+  m_Sprite: {fileID: 21300002, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103250
 GameObject:
   m_ObjectHideFlags: 0
@@ -4620,31 +4600,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103250}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25C6"
+  m_Sprite: {fileID: 21300003, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103300
 GameObject:
   m_ObjectHideFlags: 0
@@ -4893,31 +4869,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103330}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25CF"
+  m_Sprite: {fileID: 21300001, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103340
 GameObject:
   m_ObjectHideFlags: 0
@@ -4972,31 +4944,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103340}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25B2"
+  m_Sprite: {fileID: 21300002, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103350
 GameObject:
   m_ObjectHideFlags: 0
@@ -5051,31 +5019,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103350}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25C6"
+  m_Sprite: {fileID: 21300003, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103400
 GameObject:
   m_ObjectHideFlags: 0
@@ -5324,31 +5288,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103430}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25CF"
+  m_Sprite: {fileID: 21300001, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103440
 GameObject:
   m_ObjectHideFlags: 0
@@ -5403,31 +5363,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103440}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25B2"
+  m_Sprite: {fileID: 21300002, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &800103450
 GameObject:
   m_ObjectHideFlags: 0
@@ -5482,31 +5438,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 800103450}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.643137, g: 0.866667, b: 0.858824, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
-    m_FontStyle: 1
-    m_BestFit: 0
-    m_MinSize: 10
-    m_MaxSize: 64
-    m_Alignment: 4
-    m_AlignByGeometry: 0
-    m_RichText: 0
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
-    m_LineSpacing: 1
-  m_Text: "\u25C6"
+  m_Sprite: {fileID: 21300003, guid: 34afb64de29542cd8822989cc0ee883a, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!114 &800103800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5558,21 +5510,19 @@ MonoBehaviour:
   winnerAnimation: {fileID: 800103043}
   returnButton: {fileID: 800103054}
   eagleFrames:
-  - {fileID: 652153416576946007, guid: 04ca9dea99bcd0a44b2076c97fcb90d0, type: 3}
-  - {fileID: 1447154810517532244, guid: 04ca9dea99bcd0a44b2076c97fcb90d0, type: 3}
-  - {fileID: -153267312603397524, guid: 04ca9dea99bcd0a44b2076c97fcb90d0, type: 3}
+  - {fileID: 21300004, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
   bearFrames:
-  - {fileID: -7684440136785613909, guid: 8cda945ee219d25489f735abdae86e97, type: 3}
-  - {fileID: -110374215117230722, guid: 8cda945ee219d25489f735abdae86e97, type: 3}
-  - {fileID: 5597560225055228909, guid: 8cda945ee219d25489f735abdae86e97, type: 3}
+  - {fileID: 21300002, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
   cougarFrames:
-  - {fileID: 4890254853050067019, guid: 28fc0eed5c4734347a12874823320424, type: 3}
-  - {fileID: -6134052874456578038, guid: 28fc0eed5c4734347a12874823320424, type: 3}
-  - {fileID: 9146435446244025688, guid: 28fc0eed5c4734347a12874823320424, type: 3}
+  - {fileID: 21300003, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
   snakeFrames:
-  - {fileID: 8425378917301952020, guid: c7cba1bf9366f544db86f6c2417de2d9, type: 3}
-  - {fileID: -4597094828790272503, guid: c7cba1bf9366f544db86f6c2417de2d9, type: 3}
-  - {fileID: -5318011299278188332, guid: c7cba1bf9366f544db86f6c2417de2d9, type: 3}
+  - {fileID: 21300001, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
+  gemFrames:
+  - {fileID: 21300001, guid: 32a7b504d08d4a5388c6dbc861b1e55b, type: 3}
+  - {fileID: 21300002, guid: 32a7b504d08d4a5388c6dbc861b1e55b, type: 3}
+  - {fileID: 21300003, guid: 32a7b504d08d4a5388c6dbc861b1e55b, type: 3}
+  - {fileID: 21300004, guid: 32a7b504d08d4a5388c6dbc861b1e55b, type: 3}
+  - {fileID: 21300005, guid: 32a7b504d08d4a5388c6dbc861b1e55b, type: 3}
 --- !u!1001 &949486023
 PrefabInstance:
   m_ObjectHideFlags: 0

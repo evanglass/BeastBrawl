@@ -16,10 +16,10 @@ public class LANController : MonoBehaviour
     private ushort port = 7777;
 
     [SerializeField]
-    private string onlineAddress = "beastnet.evanglass.me";
+    private string onlineAddress = "129.146.35.223.sslip.io";
 
     [SerializeField]
-    private ushort onlinePort = 18773;
+    private ushort onlinePort = 443;
 
     [SerializeField]
     private ushort dedicatedServerPort = 18774;
@@ -108,6 +108,10 @@ public class LANController : MonoBehaviour
 
         transport.UseWebSockets = true;
         transport.UseEncryption = false;
+        string[] args = Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length - 1; i++)
+            if (args[i] == "-port" && ushort.TryParse(args[i + 1], out ushort roomPort) && roomPort > 0)
+                dedicatedServerPort = roomPort;
         transport.SetConnectionData("127.0.0.1", dedicatedServerPort, "127.0.0.1");
         if (!nm.StartServer())
             Debug.LogError("Could not start the dedicated server.");

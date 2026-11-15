@@ -7,9 +7,6 @@ public class SharedArenaCamera : MonoBehaviour
     [SerializeField, Min(0.01f)] private float positionSmoothTime = 0.16f;
     [SerializeField, Min(0.01f)] private float zoomSmoothTime = 0.2f;
     [SerializeField, Min(0.1f)] private float minimumSize = 6f;
-    [SerializeField, Min(0.1f)] private float maximumSize = 10f;
-    [SerializeField] private Vector2 minimumCenter = new Vector2(-8f, -4f);
-    [SerializeField] private Vector2 maximumCenter = new Vector2(8f, 6f);
     [SerializeField, Min(0f)] private float horizontalPadding = 2f;
     [SerializeField, Min(0f)] private float verticalPadding = 2f;
 
@@ -36,8 +33,6 @@ public class SharedArenaCamera : MonoBehaviour
         if (count == 0) return;
 
         center /= count;
-        center.x = Mathf.Clamp(center.x, minimumCenter.x, maximumCenter.x);
-        center.y = Mathf.Clamp(center.y, minimumCenter.y, maximumCenter.y);
         Vector3 target = new Vector3(center.x, center.y, transform.position.z);
         transform.position = Vector3.SmoothDamp(transform.position, target, ref positionVelocity, positionSmoothTime);
 
@@ -55,10 +50,8 @@ public class SharedArenaCamera : MonoBehaviour
             requiredSize = Mathf.Max(requiredSize, (xExtent + horizontalPadding) / aspect, yExtent + verticalPadding);
         }
 
-        float maxSize = Mathf.Max(minimumSize, maximumSize);
-        requiredSize = Mathf.Min(requiredSize, maxSize);
         float smoothedSize = Mathf.SmoothDamp(arenaCamera.orthographicSize, requiredSize, ref zoomVelocity, zoomSmoothTime);
         // Expand immediately when needed; ease in when there is spare room.
-        arenaCamera.orthographicSize = Mathf.Clamp(Mathf.Max(requiredSize, smoothedSize), minimumSize, maxSize);
+        arenaCamera.orthographicSize = Mathf.Max(requiredSize, smoothedSize);
     }
 }

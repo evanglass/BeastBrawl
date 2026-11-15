@@ -1,5 +1,7 @@
 
+using Unity.Netcode;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class MovingPlatform : MonoBehaviour
 {
@@ -24,12 +26,25 @@ public class MovingPlatform : MonoBehaviour
 
     private float pauseTimer = 0f;
     private bool movingForward = true;
+    private static readonly Dictionary<string, MovingPlatform> platforms = new();
+    private string networkKey;
+    private MatchManager matchManager;
+    private float syncTimer;
+    private Vector2 networkPosition;
+    private float networkRotation;
+    private bool receivedPosition;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
 
         startPosition = rb.position;
+        networkKey = gameObject.scene.name;
+        for (Transform current = transform; current != null; current = current.parent)
+            networkKey += "/" + current.name;
+        networkKey += "/" + System.BitConverter.SingleToInt32Bits(startPosition.x) + "/" + System.BitConverter.SingleToInt32Bits(startPosition.y);
+        platforms[networkKey] = this;
+        matchManager = FindFirstObjectByType<MatchManager>();
 
         if (verticalMovement)
         {
@@ -47,6 +62,26 @@ public class MovingPlatform : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && !NetworkManager.Singleton.IsServer)
+        {
+            if (receivedPosition)
+            {
+                rb.MovePosition(Vector2.Lerp(rb.position, networkPosition, Mathf.Clamp01(Time.fixedDeltaTime * 10f)));
+                rb.MoveRotation(Mathf.LerpAngle(rb.rotation, networkRotation, Mathf.Clamp01(Time.fixedDeltaTime * 10f)));
+            }
+            return;
+        }
+
+        if (matchManager != null && matchManager.IsSpawned && matchManager.IsServer && (horizontalMovement || verticalMovement || rotatePlatform))
+        {
+            syncTimer -= Time.fixedDeltaTime;
+            if (syncTimer <= 0f)
+            {
+                matchManager.SyncPlatformRpc(networkKey, rb.position, rb.rotation);
+                syncTimer = 0.1f;
+            }
+        }
+
         // MOVEMENT
         if (pauseTimer > 0f)
         {
@@ -66,7 +101,7 @@ public class MovingPlatform : MonoBehaviour
             {
                 movingForward = !movingForward;
 
-                if (movingForward)
+                if (!movingForward)
                 {
                     targetPosition = startPosition;
                 }
@@ -96,5 +131,26 @@ public class MovingPlatform : MonoBehaviour
 
             rb.MoveRotation(rb.rotation + rotationAmount);
         }
+    }
+
+    public static void ApplyNetworkPosition(string key, Vector2 position, float rotation)
+    {
+        if (!platforms.TryGetValue(key, out MovingPlatform platform))
+            return;
+
+        if (!platform.receivedPosition)
+        {
+            platform.rb.position = position;
+            platform.rb.rotation = rotation;
+        }
+        platform.networkPosition = position;
+        platform.networkRotation = rotation;
+        platform.receivedPosition = true;
+    }
+
+    private void OnDestroy()
+    {
+        if (networkKey != null && platforms.TryGetValue(networkKey, out MovingPlatform platform) && platform == this)
+            platforms.Remove(networkKey);
     }
 }

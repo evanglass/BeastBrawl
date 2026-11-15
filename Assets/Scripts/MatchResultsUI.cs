@@ -11,7 +11,7 @@ public class MatchResultsUI : MonoBehaviour
         public GameObject root;
         public Image portrait;
         public Text playerName;
-        public Text[] wins;
+        public Image[] wins;
     }
 
     [SerializeField] private MatchManager matchManager;
@@ -27,11 +27,14 @@ public class MatchResultsUI : MonoBehaviour
     [SerializeField] private Sprite[] bearFrames;
     [SerializeField] private Sprite[] cougarFrames;
     [SerializeField] private Sprite[] snakeFrames;
+    [SerializeField] private Sprite[] gemFrames;
 
     private NetworkManager networkManager;
     private bool disconnected;
     private bool leaving;
     private bool wasConnected;
+    private bool wasFinished;
+    private float victoryStarted;
 
     private void Start()
     {
@@ -83,6 +86,9 @@ public class MatchResultsUI : MonoBehaviour
         MatchManager.MatchPhase phase = connected ? matchManager.CurrentPhase : MatchManager.MatchPhase.Lobby;
         bool results = connected && phase == MatchManager.MatchPhase.RoundResults;
         bool finished = connected && phase == MatchManager.MatchPhase.MatchFinished;
+        if (finished && !wasFinished)
+            victoryStarted = Time.unscaledTime;
+        wasFinished = finished;
         bool aborted = disconnected || (connected && phase == MatchManager.MatchPhase.Aborted);
         bool visible = results || finished || aborted;
 
@@ -142,8 +148,9 @@ public class MatchResultsUI : MonoBehaviour
             if (frames.Length > 0)
             {
                 winnerPortrait.sprite = frames[0];
-                winnerAnimation.sprite = frames[Mathf.FloorToInt(Time.unscaledTime * 6f) % frames.Length];
             }
+            if (gemFrames.Length > 0)
+                winnerAnimation.sprite = gemFrames[Mathf.Min(Mathf.FloorToInt((Time.unscaledTime - victoryStarted) * 6f), gemFrames.Length - 1)];
             break;
         }
     }

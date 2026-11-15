@@ -65,6 +65,12 @@ public class MatchManager : NetworkBehaviour
     public double PhaseDeadline => phaseDeadline.Value;
     public int PlayerCount => players.Count;
 
+    [Rpc(SendTo.NotServer, InvokePermission = RpcInvokePermission.Server, Delivery = RpcDelivery.Unreliable)]
+    public void SyncPlatformRpc(string key, Vector2 position, float rotation)
+    {
+        MovingPlatform.ApplyNetworkPosition(key, position, rotation);
+    }
+
     public LobbyPlayer GetPlayer(int index)
     {
         return players[index];

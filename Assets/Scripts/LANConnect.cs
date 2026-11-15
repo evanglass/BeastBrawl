@@ -8,6 +8,9 @@ public class LANConnect : MonoBehaviour
     private GameObject lanButton;
 
     [SerializeField]
+    private GameObject quitButton;
+
+    [SerializeField]
     private InputField addressInput;
 
     [SerializeField]
@@ -51,6 +54,9 @@ public class LANConnect : MonoBehaviour
         if (Application.platform == RuntimePlatform.WebGLPlayer && lanButton != null)
             lanButton.SetActive(false);
 
+        if (Application.platform == RuntimePlatform.WebGLPlayer && quitButton != null)
+            quitButton.SetActive(false);
+
         lan = FindFirstObjectByType<LANController>();
         if (lan != null)
         {
@@ -81,6 +87,15 @@ public class LANConnect : MonoBehaviour
         onlineStatusText.text = "";
         mainMenu.SetActive(false);
         onlineMenu.SetActive(true);
+    }
+
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     public void JoinOnline()

@@ -10,12 +10,6 @@ public class EagleBeast : Beast
     private float aimSpeed = 90f;
 
     [SerializeField]
-    private float boomRange = 16f;
-
-    [SerializeField]
-    private float boomHalfAngle = 30f;
-
-    [SerializeField]
     private float boomKnockback = 30f;
 
     [SerializeField]
@@ -42,8 +36,8 @@ public class EagleBeast : Beast
     public override bool ControlsMovement => true;
     public override bool HandlesAttack => true;
     public override bool UsesBeastTimer => false;
-    public float BoomRange => boomRange;
-    public float BoomHalfAngle => boomHalfAngle;
+    public float BoomRange => Mathf.Max(0f, GameGlobals.Instance.eagleBoomRange);
+    public float BoomHalfAngle => Mathf.Clamp(GameGlobals.Instance.eagleBoomHalfAngle, 0f, 90f);
 
     private void Awake()
     {
@@ -147,10 +141,10 @@ public class EagleBeast : Beast
             return;
 
         Vector2 direction = Direction(aimAngle);
-        float minDot = Mathf.Cos(boomHalfAngle * Mathf.Deg2Rad);
+        float minDot = Mathf.Cos(BoomHalfAngle * Mathf.Deg2Rad);
         HashSet<Rigidbody2D> hitBodies = new HashSet<Rigidbody2D>();
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, boomRange, LayerMask.GetMask("Players"));
+        Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, BoomRange, LayerMask.GetMask("Players"));
 
         foreach (Collider2D hit in hits)
         {

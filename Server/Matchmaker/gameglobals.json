@@ -14,5 +14,7 @@
   "punchKnockback": { "x": 20, "y": 10 },
   "beastMeterGainRate": 2,
   "beastMeterGainPerHit": 15,
-  "beastDuration": 5
+  "beastDuration": 5,
+  "eagleBoomRange": 35,
+  "eagleBoomHalfAngle": 15
 }

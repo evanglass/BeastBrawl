@@ -26,6 +26,10 @@ public class GameGlobals : MonoBehaviour
     public float beastMeterGainPerHit = 5f;
     public float beastDuration = 5f;
 
+    [Header("Eagle")]
+    public float eagleBoomRange = 35f;
+    public float eagleBoomHalfAngle = 15f;
+
     public static GameGlobals Instance { get; private set; }
 
     private void Awake()

@@ -14,6 +14,8 @@ public class EagleVisual : NetworkBehaviour
     private NetworkVariable<Phase> phase = new(Phase.Inactive);
     private NetworkVariable<float> aimAngle = new(-90f);
     private NetworkVariable<int> cornerFacing = new(0);
+    private NetworkVariable<float> boomRange = new(35f);
+    private NetworkVariable<float> boomHalfAngle = new(15f);
     private EagleBeast eagle;
     private LineRenderer cone;
 
@@ -31,6 +33,12 @@ public class EagleVisual : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        if (IsServer)
+        {
+            boomRange.Value = eagle.BoomRange;
+            boomHalfAngle.Value = eagle.BoomHalfAngle;
+        }
+
         if (!IsClient)
             return;
 
@@ -93,7 +101,7 @@ public class EagleVisual : NetworkBehaviour
     {
         float lifetime = soundWave != null ? Mathf.Max(0.01f, soundWave.main.startLifetime.constantMax) : .5f;
         float radians = angle * Mathf.Deg2Rad;
-        Vector3 velocity = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f) * (eagle.BoomRange / lifetime);
+        Vector3 velocity = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f) * (boomRange.Value / lifetime);
         var sounds = CharacterSfxManager.GetOrCreate();
         if (sounds != null) sounds.PlayMoving(PlayerVisual.Character.Eagle, CharacterSfxManager.Effect.BeastAttack, origin, velocity, lifetime);
         if (soundWave == null)
@@ -103,21 +111,21 @@ public class EagleVisual : NetworkBehaviour
         soundWave.Play();
         for (int i = 0; i < 41; i++)
         {
-            float direction = Mathf.Lerp(angle - eagle.BoomHalfAngle, angle + eagle.BoomHalfAngle, i / 40f);
+            float direction = Mathf.Lerp(angle - boomHalfAngle.Value, angle + boomHalfAngle.Value, i / 40f);
             float particleRadians = direction * Mathf.Deg2Rad;
             ParticleSystem.EmitParams particle = new ParticleSystem.EmitParams();
             particle.position = origin;
-            particle.velocity = new Vector3(Mathf.Cos(particleRadians), Mathf.Sin(particleRadians), 0f) * (eagle.BoomRange / lifetime);
+            particle.velocity = new Vector3(Mathf.Cos(particleRadians), Mathf.Sin(particleRadians), 0f) * (boomRange.Value / lifetime);
             soundWave.Emit(particle, 1);
         }
     }
 
     private void DrawCone(Vector2 origin, float angle)
     {
-        float left = (angle - eagle.BoomHalfAngle) * Mathf.Deg2Rad;
-        float right = (angle + eagle.BoomHalfAngle) * Mathf.Deg2Rad;
-        Vector2 leftEnd = origin + new Vector2(Mathf.Cos(left), Mathf.Sin(left)) * eagle.BoomRange;
-        Vector2 rightEnd = origin + new Vector2(Mathf.Cos(right), Mathf.Sin(right)) * eagle.BoomRange;
+        float left = (angle - boomHalfAngle.Value) * Mathf.Deg2Rad;
+        float right = (angle + boomHalfAngle.Value) * Mathf.Deg2Rad;
+        Vector2 leftEnd = origin + new Vector2(Mathf.Cos(left), Mathf.Sin(left)) * boomRange.Value;
+        Vector2 rightEnd = origin + new Vector2(Mathf.Cos(right), Mathf.Sin(right)) * boomRange.Value;
 
         cone.SetPosition(0, leftEnd);
         cone.SetPosition(1, origin);
