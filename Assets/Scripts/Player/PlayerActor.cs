@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class PlayerActor : MonoBehaviour
 {
+    private PlayerNetworkBridge bridge;
     [SerializeField]
     private bool serverSimulated;
 
@@ -17,11 +18,12 @@ public class PlayerActor : MonoBehaviour
     void Awake()
     {
         playerState = GetComponent<PlayerState>();
+        bridge = GetComponent<PlayerNetworkBridge>();
     }
 
     private void FixedUpdate()
     {
-        if (!serverSimulated || playerState.Eliminated)
+        if (!serverSimulated || playerState.Eliminated || !bridge.GameplayAllowed)
             return;
 
         if (transform.position.y < GameGlobals.Instance.boundaryY)

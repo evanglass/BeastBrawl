@@ -16,6 +16,14 @@ public class GameCheck : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (roundManager.GetComponent<MatchManager>() != null)
+        {
+            winUI.gameObject.SetActive(false);
+            loseUI.gameObject.SetActive(false);
+            drawUI.gameObject.SetActive(false);
+            return;
+        }
+
         if (!roundManager.IsSpawned || !roundManager.IsClient)
             return;
 

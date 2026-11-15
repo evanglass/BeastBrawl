@@ -8,6 +8,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
     private PlayerMove playerMove;
     private PlayerBeast playerBeast;
     private Rigidbody2D rb;
+    private MatchManager matchManager;
     private NetworkVariable<bool> walking = new(false);
 
     [SerializeField]
@@ -56,6 +57,8 @@ public class PlayerNetworkBridge : NetworkBehaviour
     public bool Walking => walking.Value;
     public float BeastMeter => beastMeter.Value;
     public bool IsBeast => isBeast.Value;
+    public bool GameplayAllowed => matchManager == null ||
+        (matchManager.IsSpawned && matchManager.CurrentPhase == MatchManager.MatchPhase.Fighting);
 
     private void Awake()
     {
@@ -67,6 +70,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        matchManager = FindFirstObjectByType<MatchManager>();
         GetComponent<PlayerActor>().ServerSimulated = IsServer;
         GetComponent<PlayerInput>().enabled = IsClient && IsOwner && NetworkObject.IsPlayerObject;
 
@@ -87,6 +91,9 @@ public class PlayerNetworkBridge : NetworkBehaviour
         if (!IsSpawned || !IsServer)
             return;
 
+        if (!GameplayAllowed)
+            MoveHorizontal = 0f;
+
         Publish();
     }
 
@@ -106,12 +113,18 @@ public class PlayerNetworkBridge : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void SetMoveHorizontalServerRpc(float horizontal)
     {
+        if (!GameplayAllowed)
+            return;
+
         MoveHorizontal = Mathf.Clamp(horizontal, -1f, 1f);
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestJumpServerRpc()
     {
+        if (!GameplayAllowed)
+            return;
+
         Jump = true;
     }
 
@@ -128,6 +141,9 @@ public class PlayerNetworkBridge : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestPunchServerRpc()
     {
+        if (!GameplayAllowed)
+            return;
+
         Punch = true;
     }
 
@@ -143,6 +159,9 @@ public class PlayerNetworkBridge : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestBeastServerRpc()
     {
+        if (!GameplayAllowed)
+            return;
+
         Beast = true;
     }
 

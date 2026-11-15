@@ -16,6 +16,15 @@ public class LANController : MonoBehaviour
     private ushort port = 7777;
 
     [SerializeField]
+    private string onlineAddress = "beastnet.evanglass.me";
+
+    [SerializeField]
+    private ushort onlinePort = 18773;
+
+    [SerializeField]
+    private ushort dedicatedServerPort = 18774;
+
+    [SerializeField]
     private ushort discoveryPort = 47777;
 
     [SerializeField]
@@ -26,6 +35,21 @@ public class LANController : MonoBehaviour
 
     private NetworkManager nm;
     private Coroutine searchRoutine;
+
+    public string PlayerName { get; private set; } = "";
+
+    public bool SetPlayerName(string playerName)
+    {
+        if (string.IsNullOrWhiteSpace(playerName))
+            return false;
+
+        playerName = playerName.Trim();
+        if (playerName.Length > 20 || playerName.IndexOfAny(new[] { '\r', '\n', '<', '>' }) >= 0)
+            return false;
+
+        PlayerName = playerName;
+        return true;
+    }
 
 #if !UNITY_WEBGL || UNITY_EDITOR
     private UdpClient discoveryHost;
@@ -51,19 +75,74 @@ public class LANController : MonoBehaviour
 
     private void Awake()
     {
+        ConfigureNetworking();
+    }
+
+    private void ConfigureNetworking()
+    {
         nm = NetworkManager.Singleton;
+
+        if (nm != null && !nm.IsListening)
+        {
+            nm.NetworkConfig.ConnectionApproval = true;
+            nm.ConnectionApprovalCallback = ApproveConnection;
+        }
+    }
+
+    private void Start()
+    {
+#if UNITY_SERVER && !UNITY_EDITOR
+        ConfigureNetworking();
+        if (nm == null)
+        {
+            Debug.LogError("Cannot start the dedicated server: no NetworkManager was found.");
+            return;
+        }
+
+        UnityTransport transport = nm.GetComponent<UnityTransport>();
+        if (transport == null)
+        {
+            Debug.LogError("Cannot start the dedicated server: no UnityTransport was found.");
+            return;
+        }
+
+        transport.UseWebSockets = true;
+        transport.UseEncryption = false;
+        transport.SetConnectionData("127.0.0.1", dedicatedServerPort, "127.0.0.1");
+        if (!nm.StartServer())
+            Debug.LogError("Could not start the dedicated server.");
+#endif
+    }
+
+    private void ApproveConnection(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        MatchManager match = FindFirstObjectByType<MatchManager>();
+        bool acceptsPlayers = match == null || !match.IsSpawned ||
+            match.CurrentPhase == MatchManager.MatchPhase.Lobby ||
+            match.CurrentPhase == MatchManager.MatchPhase.LobbyCountdown;
+        bool roomAvailable = nm.ConnectedClients.Count < 4;
+
+        response.Approved = acceptsPlayers && roomAvailable;
+        response.CreatePlayerObject = response.Approved;
+        response.Pending = false;
+
+        if (!response.Approved)
+            response.Reason = acceptsPlayers ? "This game is full." : "This game has already started.";
     }
 
     public void HostGame()
     {
-        nm = NetworkManager.Singleton;
+        ConfigureNetworking();
         if (nm == null)
         {
             Debug.LogWarning("No NetworkManager is available for LAN hosting.");
             return;
         }
 
-        nm.GetComponent<UnityTransport>().SetConnectionData("127.0.0.1", port, "0.0.0.0");
+        UnityTransport transport = nm.GetComponent<UnityTransport>();
+        transport.UseWebSockets = false;
+        transport.UseEncryption = false;
+        transport.SetConnectionData("127.0.0.1", port, "0.0.0.0");
         
         bool started = nm.StartHost();
         if (started)
@@ -81,6 +160,24 @@ public class LANController : MonoBehaviour
         return JoinGame(ipAddress, port);
     }
 
+    public bool JoinOnline()
+    {
+        ConfigureNetworking();
+        if (nm == null || nm.IsListening || string.IsNullOrWhiteSpace(onlineAddress) || onlinePort == 0)
+            return false;
+
+        UnityTransport transport = nm.GetComponent<UnityTransport>();
+        if (transport == null)
+            return false;
+
+        CancelFindGames();
+        transport.UseWebSockets = true;
+        transport.UseEncryption = true;
+        transport.SetClientSecrets(onlineAddress);
+        transport.SetConnectionData(onlineAddress, onlinePort);
+        return nm.StartClient();
+    }
+
     public bool JoinGame(string ipAddress, ushort gamePort)
     {
         if (Application.platform == RuntimePlatform.WebGLPlayer)
@@ -95,7 +192,7 @@ public class LANController : MonoBehaviour
             return false;
         }
 
-        nm = NetworkManager.Singleton;
+        ConfigureNetworking();
         if (nm == null || nm.IsListening)
         {
             Debug.LogWarning("Cannot join while networking is unavailable or already running.");
@@ -110,6 +207,8 @@ public class LANController : MonoBehaviour
         }
 
         CancelFindGames();
+        transport.UseWebSockets = false;
+        transport.UseEncryption = false;
         transport.SetConnectionData(ipAddress.Trim(), gamePort);
         bool started = nm.StartClient();
         if (!started)

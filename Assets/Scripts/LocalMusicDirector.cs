@@ -53,12 +53,8 @@ public sealed class LocalMusicDirector : MonoBehaviour
     {
         if (music == null) music = GetComponent<BeastBrawlMusicManager>();
         if (music == null) music = FindFirstObjectByType<BeastBrawlMusicManager>();
-        // The menu camera belongs to its scene, while music survives scene changes.
-        var menus = GetComponentsInChildren<MenuPresentation>(true);
-        foreach (var menu in menus) if (menu.transform != transform) menu.transform.SetParent(null, true);
         if (instance != null && instance != this)
         {
-            foreach (var menu in menus) menu.musicManager = instance.music;
             if (music != null && music != instance.music) Destroy(music);
             Destroy(this);
             return;

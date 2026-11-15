@@ -32,6 +32,15 @@ public class PlayerMove : NetworkBehaviour
     public bool OnWall => onWall;
     public Vector2 WallNormal => wallNormal;
 
+    public void ResetForRound()
+    {
+        jumpsRemain = GameGlobals.Instance.maxJumps;
+        hasTouchedGround = false;
+        onFloor = false;
+        onWall = false;
+        wallNormal = Vector2.zero;
+    }
+
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -86,6 +95,13 @@ public class PlayerMove : NetworkBehaviour
 
         if (!IsServer)
             return;
+
+        if (!bridge.GameplayAllowed)
+        {
+            bridge.ConsumeJumpRequest();
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
 
         if (playerState.Eliminated)
         {

@@ -47,6 +47,9 @@ public class PlayerBeast : NetworkBehaviour
 
         bool wantsBeast = bridge.ConsumeBeastRequest();
 
+        if (!bridge.GameplayAllowed)
+            return;
+
         if (isBeast)
         {
             currentBeast.TickBeast(Time.fixedDeltaTime);

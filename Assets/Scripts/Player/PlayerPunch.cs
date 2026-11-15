@@ -22,6 +22,11 @@ public class PlayerPunch : NetworkBehaviour
 
     private Collider2D[] hits = new Collider2D[10];
 
+    public void ResetForRound()
+    {
+        cooldown = 0f;
+    }
+
     private void Awake()
     {
         bridge = GetComponent<PlayerNetworkBridge>();
@@ -56,6 +61,9 @@ public class PlayerPunch : NetworkBehaviour
             return;
 
         bool wantsPunch = bridge.ConsumePunchRequest();
+
+        if (!bridge.GameplayAllowed)
+            return;
 
         if (playerBeast.HandlesAttack)
         {

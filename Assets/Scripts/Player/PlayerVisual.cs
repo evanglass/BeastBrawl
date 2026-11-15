@@ -8,6 +8,7 @@ public class PlayerVisual : NetworkBehaviour
     private Animator animator;
     private Rigidbody2D rb;
     private EagleVisual eagleVisual;
+    private MatchManager matchManager;
 
     [SerializeField]
     private RectTransform beastMeterFill;
@@ -48,6 +49,15 @@ public class PlayerVisual : NetworkBehaviour
     {
         if (!IsClient || !IsSpawned)
             return;
+
+        if (matchManager == null)
+            matchManager = FindFirstObjectByType<MatchManager>();
+
+        bool showPlayer = matchManager == null || (matchManager.IsSpawned &&
+            (matchManager.CurrentPhase == MatchManager.MatchPhase.RoundCountdown ||
+             matchManager.CurrentPhase == MatchManager.MatchPhase.Fighting));
+        spriteRenderer.enabled = showPlayer;
+        beastMeterFill.parent.gameObject.SetActive(showPlayer);
 
         animator.SetBool("Walking", Walking);
         animator.SetBool("Conscious", Conscious);

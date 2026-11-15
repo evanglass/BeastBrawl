@@ -3,10 +3,11 @@ using System.Linq;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RoundManager : NetworkBehaviour
 {
-    public List<Transform> spawnPositions;
+    public List<Transform> spawnPositions = new();
     public Transform eagleLeftCorner;
     public Transform eagleRightCorner;
     public List<NetworkObject> players;
@@ -15,6 +16,7 @@ public class RoundManager : NetworkBehaviour
     private bool roundPrepared;
     private NetworkVariable<double> fightStartTime = new(0);
     public double FightStartTime => fightStartTime.Value;
+    private bool arenaReady;
 
     private NetworkVariable<int> winnerId = new(
         -2,
@@ -23,6 +25,20 @@ public class RoundManager : NetworkBehaviour
     );
 
     public int WinnerId => winnerId.Value;
+    public ulong? RoundWinnerClientId { get; private set; }
+
+    public void ResetRound()
+    {
+        if (!IsServer)
+            return;
+
+        players.Clear();
+        roundPrepared = false;
+        fightStartTime.Value = 0;
+        winnerId.Value = -2;
+        RoundWinnerClientId = null;
+        CurrentState = RoundState.WaitingForPlayers;
+    }
 
     public enum RoundState
     {
@@ -43,6 +59,44 @@ public class RoundManager : NetworkBehaviour
     {
         get => currentState.Value;
         private set => currentState.Value = value;
+    }
+
+    public void ClearArena()
+    {
+        arenaReady = false;
+        spawnPositions.Clear();
+        eagleLeftCorner = null;
+        eagleRightCorner = null;
+    }
+
+    public bool SetArena(Scene arena)
+    {
+        ClearArena();
+        if (!arena.IsValid() || !arena.isLoaded)
+        {
+            Debug.LogError("Cannot find spawn points: arena is not loaded.");
+            return false;
+        }
+
+        spawnPositions = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None)
+            .Where(point => point.gameObject.scene == arena)
+            .Select(point => point.transform)
+            .ToList();
+
+        var eagleCorners = FindObjectsByType<EagleCorner>(FindObjectsSortMode.None)
+            .Where(corner => corner.gameObject.scene == arena)
+            .ToList();
+        eagleLeftCorner = eagleCorners.FirstOrDefault(c => c.LeftCorner)?.transform;
+        eagleRightCorner = eagleCorners.FirstOrDefault(c => !c.LeftCorner)?.transform;
+
+        if (spawnPositions.Count < playersPerRound)
+        {
+            Debug.LogError($"Arena {arena.name} has {spawnPositions.Count} spawn points; {playersPerRound} are required.");
+            return false;
+        }
+
+        arenaReady = true;
+        return true;
     }
 
     private void RemoveDisconnectedPlayers()
@@ -100,20 +154,27 @@ public class RoundManager : NetworkBehaviour
                 players.Add(playerObject);
             }
 
-            if (players.Count >= playersPerRound)
-            {
-                roundPrepared = false;
-                fightStartTime.Value = NetworkManager.ServerTime.Time + Mathf.Max(1f, roundIntroSeconds);
-                CurrentState = RoundState.RoundStarting;
-                break;
-            }
+        }
+
+        var matchManager = GetComponent<MatchManager>();
+        if (matchManager != null && matchManager.CurrentPhase != MatchManager.MatchPhase.RoundCountdown)
+            return;
+
+        if (matchManager != null && players.Any(player => matchManager.GetCharacter(player.OwnerClientId) == PlayerVisual.Character.None))
+            return;
+
+        if (arenaReady && players.Count >= playersPerRound && players.Count <= spawnPositions.Count)
+        {
+            roundPrepared = false;
+            fightStartTime.Value = NetworkManager.ServerTime.Time + Mathf.Max(1f, roundIntroSeconds);
+            CurrentState = RoundState.RoundStarting;
         }
     }
 
     private void StartRound()
     {
         RemoveDisconnectedPlayers();
-        if (players.Count < playersPerRound)
+        if (!arenaReady || players.Count < playersPerRound || spawnPositions.Count < players.Count || spawnPositions.Any(position => position == null))
         {
             roundPrepared = false;
             fightStartTime.Value = 0;
@@ -123,9 +184,13 @@ public class RoundManager : NetworkBehaviour
 
         if (!roundPrepared)
         {
-            List<EagleCorner> eagleCorners = FindObjectsByType<EagleCorner>(FindObjectsSortMode.None).ToList();
-            eagleLeftCorner = eagleCorners.FirstOrDefault(c => c.LeftCorner)?.transform;
-            eagleRightCorner = eagleCorners.FirstOrDefault(c => !c.LeftCorner)?.transform;
+            var matchManager = GetComponent<MatchManager>();
+            if (matchManager != null && players.Any(player => matchManager.GetCharacter(player.OwnerClientId) == PlayerVisual.Character.None))
+            {
+                fightStartTime.Value = 0;
+                CurrentState = RoundState.WaitingForPlayers;
+                return;
+            }
 
             var randomIndices = Enumerable.Range(0, spawnPositions.Count).OrderBy(x => Random.value).ToArray();
             var characters = Enumerable.Range(0, 4).OrderBy(x => Random.value).ToArray();
@@ -135,7 +200,7 @@ public class RoundManager : NetworkBehaviour
                 var playerObject = players[i];
                 var visual = playerObject.GetComponent<PlayerVisual>();
                 if (visual != null)
-                    visual.AssignCharacter(characters[i % characters.Length] + 1);
+                    visual.AssignCharacter(matchManager != null ? (int)matchManager.GetCharacter(playerObject.OwnerClientId) : characters[i % characters.Length] + 1);
 
                 var spawnPosition = spawnPositions[randomIndices[i % spawnPositions.Count]];
 
@@ -156,6 +221,8 @@ public class RoundManager : NetworkBehaviour
                 {
                     playerState.Reset();
                     playerObject.GetComponent<PlayerBeast>()?.Reset(visual != null ? visual.PlayerCharacter : PlayerVisual.Character.None);
+                    playerObject.GetComponent<PlayerMove>()?.ResetForRound();
+                    playerObject.GetComponent<PlayerPunch>()?.ResetForRound();
                 }
             }
             roundPrepared = true;
@@ -187,6 +254,7 @@ public class RoundManager : NetworkBehaviour
             Debug.Log("No winner this round.");
         }
 
+        RoundWinnerClientId = winner != null ? winner.OwnerClientId : null;
         winnerId.Value = winner != null ? (int)winner.OwnerClientId : -1;
 
         CurrentState = RoundState.RoundFinished;
