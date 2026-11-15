@@ -72,6 +72,14 @@ public class PlayerState : MonoBehaviour
             beastMeter = Mathf.Clamp(beastMeter + GameGlobals.Instance.beastMeterGainPerHit, 0f, 100f);
     }
 
+    public void KnockOut()
+    {
+        if (!eliminated)
+        {
+            Punch(100f);
+        }
+    }
+
     public void Eliminate()
     {
         eliminated = true;
