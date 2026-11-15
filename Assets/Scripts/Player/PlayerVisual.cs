@@ -7,6 +7,7 @@ public class PlayerVisual : NetworkBehaviour
     private SpriteRenderer spriteRenderer;
     private Animator animator;
     private Rigidbody2D rb;
+    private EagleVisual eagleVisual;
 
     [SerializeField]
     private RectTransform beastMeterFill;
@@ -30,13 +31,14 @@ public class PlayerVisual : NetworkBehaviour
 
     public bool Walking => bridge.Walking;
 
-    public int Facing => bridge?.Facing ?? 1;
+    public int Facing => eagleVisual != null && eagleVisual.FacingOverride != 0 ? eagleVisual.FacingOverride : bridge?.Facing ?? 1;
 
     public bool Conscious => bridge?.IsConscious ?? true;
 
     private void Awake()
     {
         bridge = GetComponent<PlayerNetworkBridge>();
+        eagleVisual = GetComponent<EagleVisual>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();

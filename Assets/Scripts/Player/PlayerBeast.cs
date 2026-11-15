@@ -17,6 +17,8 @@ public class PlayerBeast : NetworkBehaviour
     public bool IsBeast => isBeast;
     public bool AutoAttack => isBeast && currentBeast != null && currentBeast.AutoAttack;
     public Collider2D AttackArea => isBeast && currentBeast != null ? currentBeast.AttackArea : null;
+    public bool ControlsMovement => isBeast && currentBeast != null && currentBeast.ControlsMovement;
+    public bool HandlesAttack => isBeast && currentBeast != null && currentBeast.HandlesAttack;
 
     private void Awake()
     {
@@ -47,6 +49,10 @@ public class PlayerBeast : NetworkBehaviour
 
         if (isBeast)
         {
+            currentBeast.TickBeast(Time.fixedDeltaTime);
+            if (!isBeast || !currentBeast.UsesBeastTimer)
+                return;
+
             beastTimer -= Time.fixedDeltaTime;
 
             if (beastTimer <= 0f)
@@ -61,7 +67,7 @@ public class PlayerBeast : NetworkBehaviour
         if (!playerState.IsConscious || playerState.Eliminated)
             return;
 
-        if (playerState.BeastMeter == 100f)
+        if (playerState.BeastMeter == 100f && currentBeast != null)
         {
             isBeast = true;
             playerState.UnleashBeast();
@@ -105,6 +111,12 @@ public class PlayerBeast : NetworkBehaviour
             return;
         }
         currentBeast.OnPunchHit(target);
+    }
+
+    public void RequestBeastAttack()
+    {
+        if (IsServer && HandlesAttack)
+            currentBeast.RequestAttack();
     }
 
     public void EndBeast()

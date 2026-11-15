@@ -322,6 +322,7 @@ GameObject:
   - component: {fileID: 7800000000000000102}
   - component: {fileID: 7800000000000000103}
   - component: {fileID: 7800000000000000104}
+  - component: {fileID: 7800000000000000105}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -763,6 +764,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0d2bb166b19db24494f78821e051357, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EagleBeast
+  cornerSpeed: 15
+  aimSpeed: 90
+  boomRange: 16
+  boomHalfAngle: 30
+  boomKnockback: 30
+  flightSpeed: 10
+  flightDuration: 2
 --- !u!114 &7800000000000000102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -800,6 +808,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62e8ee5353dbdfb48838b819ad4a3c03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakeBeast
+--- !u!114 &7800000000000000105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6449394127706505497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1d127b602db46e0ab1ed092b8390cb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EagleVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  soundWavePrefab: {fileID: 1884801315916453579, guid: 03f509988ddf83944bca9f21f1534e04, type: 3}
 --- !u!1 &7700000000000000001
 GameObject:
   m_ObjectHideFlags: 0

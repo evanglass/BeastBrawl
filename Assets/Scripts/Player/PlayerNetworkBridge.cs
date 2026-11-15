@@ -68,7 +68,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         GetComponent<PlayerActor>().ServerSimulated = IsServer;
-        GetComponent<PlayerInput>().enabled = IsClient && IsOwner;
+        GetComponent<PlayerInput>().enabled = IsClient && IsOwner && NetworkObject.IsPlayerObject;
 
         if (IsServer)
         {

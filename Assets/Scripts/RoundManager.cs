@@ -7,6 +7,8 @@ using UnityEngine;
 public class RoundManager : NetworkBehaviour
 {
     public List<Transform> spawnPositions;
+    public Transform eagleLeftCorner;
+    public Transform eagleRightCorner;
     public List<NetworkObject> players;
     public int playersPerRound = 2;
 

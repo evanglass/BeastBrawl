@@ -57,6 +57,13 @@ public class PlayerPunch : NetworkBehaviour
 
         bool wantsPunch = bridge.ConsumePunchRequest();
 
+        if (playerBeast.HandlesAttack)
+        {
+            if (wantsPunch && playerState.IsConscious && !playerState.Eliminated)
+                playerBeast.RequestBeastAttack();
+            return;
+        }
+
         if (cooldown > 0f)
         {
             cooldown -= Time.fixedDeltaTime;

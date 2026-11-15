@@ -104,6 +104,9 @@ public class PlayerMove : NetworkBehaviour
 
         bool wantsJump = bridge.ConsumeJumpRequest();
 
+        if (playerBeast.ControlsMovement)
+            return;
+
         if (!playerState.IsConscious)
             return;
 
