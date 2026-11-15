@@ -810,7 +810,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7700000000000000002}
   - component: {fileID: 7700000000000000003}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Beast Meter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -873,7 +873,7 @@ GameObject:
   - component: {fileID: 7700000000000000012}
   - component: {fileID: 7700000000000000013}
   - component: {fileID: 7700000000000000014}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Border
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -948,7 +948,7 @@ GameObject:
   - component: {fileID: 7700000000000000022}
   - component: {fileID: 7700000000000000023}
   - component: {fileID: 7700000000000000024}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Empty
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1023,7 +1023,7 @@ GameObject:
   - component: {fileID: 7700000000000000032}
   - component: {fileID: 7700000000000000033}
   - component: {fileID: 7700000000000000034}
-  m_Layer: 5
+  m_Layer: 7
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
