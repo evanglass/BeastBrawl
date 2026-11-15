@@ -8,6 +8,9 @@ public class PlayerVisual : NetworkBehaviour
     private Animator animator;
     private Rigidbody2D rb;
 
+    [SerializeField]
+    private RectTransform beastMeterFill;
+
     public enum Character
     {
         None,
@@ -46,8 +49,11 @@ public class PlayerVisual : NetworkBehaviour
 
         animator.SetBool("Walking", Walking);
         animator.SetBool("Conscious", Conscious);
+        animator.SetBool("Beast", bridge.IsBeast);
+        if (bridge.IsBeast && PlayerCharacter != Character.Snake && PlayerCharacter != Character.Bear) animator.ResetTrigger("Punch");
         animator.SetInteger("Character", (int)PlayerCharacter);
         animator.SetInteger("Facing", Facing);
+        beastMeterFill.localScale = new Vector3(Mathf.Clamp01(bridge.BeastMeter / 100f), 1f, 1f);
 
         spriteRenderer.flipX = Facing < 0;
     }

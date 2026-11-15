@@ -17,6 +17,7 @@ public class PlayerPunch : NetworkBehaviour
     private PlayerInput playerInput;
     private PlayerState playerState;
     private PlayerMove playerMove;
+    private PlayerBeast playerBeast;
     private Rigidbody2D rb;
 
     private Collider2D[] hits = new Collider2D[10];
@@ -27,6 +28,7 @@ public class PlayerPunch : NetworkBehaviour
         playerInput = GetComponent<PlayerInput>();
         playerState = GetComponent<PlayerState>();
         playerMove = GetComponent<PlayerMove>();
+        playerBeast = GetComponent<PlayerBeast>();
         rb = GetComponent<Rigidbody2D>();
     }
 
@@ -61,20 +63,22 @@ public class PlayerPunch : NetworkBehaviour
             return;
         }
 
-        if (!wantsPunch)
+        if (!wantsPunch && !playerBeast.AutoAttack)
             return;
 
         if (!playerState.IsConscious || playerState.Eliminated)
             return;
 
-        cooldown = GameGlobals.Instance.punchCooldown;
-        GetComponent<PlayerVisual>().PlayPunchRpc();
+        cooldown = GameGlobals.Instance.punchCooldown * playerBeast.GetPunchCooldownMultiplier();
+        if (!playerBeast.AutoAttack)
+            GetComponent<PlayerVisual>().PlayPunchRpc();
 
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(LayerMask.GetMask("Players"));
         filter.useTriggers = false;
 
-        int hitCount = punchArea.Overlap(filter, hits);
+        Collider2D activeArea = playerBeast.AttackArea != null ? playerBeast.AttackArea : punchArea;
+        int hitCount = activeArea.Overlap(filter, hits);
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -87,24 +91,31 @@ public class PlayerPunch : NetworkBehaviour
             PlayerPunch otherPunch = other.GetComponent<PlayerPunch>();
             if (otherPunch != null)
             {
-                otherPunch.ApplyPunch(bridge);
+                otherPunch.ApplyPunch(bridge, playerBeast.GetPunchDamageMultiplier(), playerBeast.GetPunchKnockbackMultiplier());
+                playerBeast.Attack(other);
             }
         }
     }
 
-    private void ApplyPunch(PlayerNetworkBridge attacker)
+    private void ApplyPunch(PlayerNetworkBridge attacker, float punchDamageMultiplier, float knockbackMultiplier)
     {
         if (!IsSpawned || !IsServer)
             return;
-        playerState.Punch(GameGlobals.Instance.punchDamage);
+        playerState.Punch(GameGlobals.Instance.punchDamage * punchDamageMultiplier);
+
+        Vector2 knockback = new Vector2(
+            GameGlobals.Instance.punchKnockback.x * knockbackMultiplier,
+            GameGlobals.Instance.punchKnockback.y * knockbackMultiplier
+        );
+
         if (playerMove.OnWall)
         {
-            rb.AddForce(Vector2.up * GameGlobals.Instance.punchKnockback.y, ForceMode2D.Impulse);
-            rb.AddForce(Vector2.right * GameGlobals.Instance.punchKnockback.x * playerMove.WallNormal.x, ForceMode2D.Impulse);
+            rb.AddForce(Vector2.up * knockback.y, ForceMode2D.Impulse);
+            rb.AddForce(Vector2.right * knockback.x * playerMove.WallNormal.x, ForceMode2D.Impulse);
         } else
         {
-            rb.AddForce(Vector2.up * GameGlobals.Instance.punchKnockback.y, ForceMode2D.Impulse);
-            rb.AddForce(Vector2.right * GameGlobals.Instance.punchKnockback.x * attacker.Facing, ForceMode2D.Impulse);
+            rb.AddForce(Vector2.up * knockback.y, ForceMode2D.Impulse);
+            rb.AddForce(Vector2.right * knockback.x * attacker.Facing, ForceMode2D.Impulse);
         }
     }
 }

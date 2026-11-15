@@ -20,6 +20,9 @@ public class GameGlobals : MonoBehaviour
     public float punchDamage = 20f;
     public float punchCooldown = 1f;
     public Vector2 punchKnockback = new Vector2(20, 40);
+    public float beastMeterGainRate = 5f;
+    public float beastMeterGainPerHit = 5f;
+    public float beastDuration = 5f;
 
     public static GameGlobals Instance { get; private set; }
 

@@ -6,6 +6,7 @@ public class PlayerMove : NetworkBehaviour
 {
     private PlayerInput playerInput;
     private PlayerNetworkBridge bridge;
+    private PlayerBeast playerBeast;
     private Rigidbody2D rb;
     private PlayerState playerState;
 
@@ -35,6 +36,7 @@ public class PlayerMove : NetworkBehaviour
         bridge = GetComponent<PlayerNetworkBridge>();
         rb = GetComponent<Rigidbody2D>();
         playerState = GetComponent<PlayerState>();
+        playerBeast = GetComponent<PlayerBeast>();
         rb.gravityScale = GameGlobals.Instance.gravityScale;
         Facing = 1;
     }
@@ -94,7 +96,7 @@ public class PlayerMove : NetworkBehaviour
         if (!playerState.IsConscious)
             return;
 
-        float targetSpeed = bridge.MoveHorizontal * GameGlobals.Instance.moveSpeed;
+        float targetSpeed = bridge.MoveHorizontal * GameGlobals.Instance.moveSpeed * playerBeast.GetMoveSpeedMultiplier();
 
         float newSpeed = Mathf.MoveTowards(
             rb.linearVelocity.x,
