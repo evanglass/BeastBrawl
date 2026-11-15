@@ -12,6 +12,7 @@ Check each source page and license before release; the sounds do not all share t
 ### Jump
 - 330967__deleted_user_2104797__bird-flap-b-05.wav — https://freesound.org/s/330967/
 - 389633__stubb__wing-flap-2.wav — https://freesound.org/s/389633/
+  - `389633__stubb__wing-flap-2_balanced.wav` is a louder edit for the jump effect.
 - 877979__qvantor__whoosh-flutter-wings.wav — https://freesound.org/s/877979/
 
 ### Hit
@@ -109,3 +110,7 @@ Check each source page and license before release; the sounds do not all share t
 
 ### Special Attack (user supplied; license not yet checked)
 - 737232__qubodup__short-water-squish.wav — https://freesound.org/s/737232/
+
+### Level-balanced edits
+
+Files ending in `_mix.wav` are compressed and level-balanced edits of the corresponding files listed above; they retain their original source and licensing.

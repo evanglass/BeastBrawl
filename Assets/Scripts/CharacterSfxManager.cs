@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEngine.UIElements;
+#endif
 
 /// <summary>Plays character effects locally using positions in this instance's camera.</summary>
 public class CharacterSfxManager : MonoBehaviour
@@ -235,6 +238,26 @@ public sealed class SoundPercentAttribute : PropertyAttribute
 [UnityEditor.CustomPropertyDrawer(typeof(SoundPercentAttribute))]
 public sealed class SoundPercentDrawer : UnityEditor.PropertyDrawer
 {
+    public override UnityEngine.UIElements.VisualElement CreatePropertyGUI(UnityEditor.SerializedProperty property)
+    {
+        var settings = (SoundPercentAttribute)attribute;
+        var slider = new UnityEngine.UIElements.Slider((settings.label ?? property.displayName) + " (%)", 0f, settings.maximum)
+        {
+            showInputField = true,
+            value = property.floatValue * 100f,
+            tooltip = property.tooltip
+        };
+        slider.RegisterValueChangedCallback(evt =>
+        {
+            property.serializedObject.Update();
+            property.floatValue = evt.newValue / 100f;
+            property.serializedObject.ApplyModifiedProperties();
+        });
+        UnityEditor.UIElements.BindingExtensions.TrackPropertyValue(slider, property,
+            p => slider.SetValueWithoutNotify(p.floatValue * 100f));
+        return slider;
+    }
+
     public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label)
     {
         var settings = (SoundPercentAttribute)attribute;
@@ -244,6 +267,68 @@ public sealed class SoundPercentDrawer : UnityEditor.PropertyDrawer
         float percent = UnityEditor.EditorGUI.Slider(position, caption, property.floatValue * 100f, 0f, settings.maximum);
         if (UnityEditor.EditorGUI.EndChangeCheck()) property.floatValue = percent / 100f;
         UnityEditor.EditorGUI.EndProperty();
+    }
+}
+
+[UnityEditor.CustomPropertyDrawer(typeof(CharacterSfxManager.SoundEffect))]
+public sealed class CharacterSoundEffectDrawer : UnityEditor.PropertyDrawer
+{
+    public override UnityEngine.UIElements.VisualElement CreatePropertyGUI(UnityEditor.SerializedProperty property)
+    {
+        var foldout = new UnityEngine.UIElements.Foldout { text = property.displayName, value = property.isExpanded };
+        foldout.RegisterValueChangedCallback(e => property.isExpanded = e.newValue);
+        var volume = property.FindPropertyRelative("volume");
+        var gain = property.FindPropertyRelative("gain");
+        foldout.Add(new UnityEditor.UIElements.PropertyField(property.FindPropertyRelative("clip")));
+        var slider = new UnityEngine.UIElements.Slider("Volume (%)", 0f, 800f)
+        {
+            showInputField = true,
+            value = volume.floatValue * gain.floatValue * 100f
+        };
+        slider.RegisterValueChangedCallback(e =>
+        {
+            property.serializedObject.Update();
+            volume.floatValue = 1f;
+            gain.floatValue = e.newValue / 100f;
+            property.serializedObject.ApplyModifiedProperties();
+        });
+        UnityEditor.UIElements.BindingExtensions.TrackPropertyValue(slider, volume,
+            p => slider.SetValueWithoutNotify(p.floatValue * gain.floatValue * 100f));
+        UnityEditor.UIElements.BindingExtensions.TrackPropertyValue(slider, gain,
+            p => slider.SetValueWithoutNotify(volume.floatValue * p.floatValue * 100f));
+        foldout.Add(slider);
+        foldout.Add(new UnityEditor.UIElements.PropertyField(property.FindPropertyRelative("pitch")));
+        foldout.Add(new UnityEditor.UIElements.PropertyField(property.FindPropertyRelative("bitCrush")));
+        foldout.Add(new UnityEditor.UIElements.PropertyField(property.FindPropertyRelative("startSeconds")));
+        return foldout;
+    }
+
+    public override float GetPropertyHeight(UnityEditor.SerializedProperty property, GUIContent label)
+        => UnityEditor.EditorGUIUtility.singleLineHeight * (property.isExpanded ? 6 : 1) +
+           UnityEditor.EditorGUIUtility.standardVerticalSpacing * (property.isExpanded ? 5 : 0);
+
+    public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label)
+    {
+        float line = UnityEditor.EditorGUIUtility.singleLineHeight;
+        float step = line + UnityEditor.EditorGUIUtility.standardVerticalSpacing;
+        var row = new Rect(position.x, position.y, position.width, line);
+        property.isExpanded = UnityEditor.EditorGUI.Foldout(row, property.isExpanded, label, true);
+        if (!property.isExpanded) return;
+        UnityEditor.EditorGUI.indentLevel++;
+        row.y += step;
+        UnityEditor.EditorGUI.PropertyField(row, property.FindPropertyRelative("clip"));
+        var volume = property.FindPropertyRelative("volume");
+        var gain = property.FindPropertyRelative("gain");
+        row.y += step;
+        UnityEditor.EditorGUI.BeginChangeCheck();
+        float percent = UnityEditor.EditorGUI.Slider(row, "Volume (%)", volume.floatValue * gain.floatValue * 100f, 0f, 800f);
+        if (UnityEditor.EditorGUI.EndChangeCheck()) { volume.floatValue = 1f; gain.floatValue = percent / 100f; }
+        foreach (string name in new[] { "pitch", "bitCrush", "startSeconds" })
+        {
+            row.y += step;
+            UnityEditor.EditorGUI.PropertyField(row, property.FindPropertyRelative(name));
+        }
+        UnityEditor.EditorGUI.indentLevel--;
     }
 }
 #endif

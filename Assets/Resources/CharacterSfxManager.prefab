@@ -46,37 +46,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterSfxManager
   eagle:
     attack:
-      clip: {fileID: 8300000, guid: 9f173b781224346bc8e281901d46897a, type: 3}
+      clip: {fileID: 8300000, guid: 0ca6c58624004a80bd5d1fe2ecef8874, type: 3}
       volume: 1
       pitch: 1
       gain: 6
       bitCrush: 0
     jump:
-      clip: {fileID: 8300000, guid: 1bd95dd99c06449eab2d2bdd75fb637c, type: 3}
+      clip: {fileID: 8300000, guid: dc59363e8ac844a6a554e6625d0fc5bb, type: 3}
       volume: 1
       pitch: 1
       gain: 4
       bitCrush: 0
     hit:
-      clip: {fileID: 0}
+      clip: {fileID: 8300000, guid: 16cf3a93b53a74acbbd1eca0bcd7025c, type: 3}
       volume: 1
       pitch: 1
-      gain: 4
+      gain: 1
       bitCrush: 0
     land:
-      clip: {fileID: 8300000, guid: 98c26a86d492f42178aad6503c3275cc, type: 3}
+      clip: {fileID: 8300000, guid: d102f2fbdb164109b84beca499c902af, type: 3}
       volume: 1
       pitch: 1
       gain: 1
       bitCrush: 0
     beastActivation:
-      clip: {fileID: 8300000, guid: 9fc8b139bcaa049caabc870bad3f3826, type: 3}
+      clip: {fileID: 8300000, guid: c88ff959edce4fb7b59b9edb7b102e89, type: 3}
       volume: 1
       pitch: 1
       gain: 1
       bitCrush: 0
     beastAttack:
-      clip: {fileID: 8300000, guid: c091b40dc4a67439390115f8e6073d0f, type: 3}
+      clip: {fileID: 8300000, guid: a12b2108015341cd8c9968ce41569f5a, type: 3}
       volume: 1
       pitch: 1
       gain: 4
@@ -84,7 +84,7 @@ MonoBehaviour:
     otherEffects: []
   bear:
     attack:
-      clip: {fileID: 8300000, guid: f59d1ec739fb94e3fb76e5c5e6641ef5, type: 3}
+      clip: {fileID: 8300000, guid: 508686cc6b4c45ba9d0380d4e8be44a5, type: 3}
       volume: 1
       pitch: 1
       gain: 4
@@ -103,19 +103,19 @@ MonoBehaviour:
       gain: 1
       bitCrush: 0
     land:
-      clip: {fileID: 8300000, guid: f015cc82b03214de7978a26384219714, type: 3}
+      clip: {fileID: 8300000, guid: b9831e2a5f614912b742ff3d363619a0, type: 3}
       volume: 1
       pitch: 1
       gain: 1
       bitCrush: 0
     beastActivation:
-      clip: {fileID: 8300000, guid: 376ed94164f1460fbecb22248af171fc, type: 3}
+      clip: {fileID: 8300000, guid: 5cecdb7dd02d4745821dd2d106df1010, type: 3}
       volume: 1
       pitch: 1
       gain: 1
       bitCrush: 0
     beastAttack:
-      clip: {fileID: 8300000, guid: afcb37407ca744be976b2b8fc838a76c, type: 3}
+      clip: {fileID: 8300000, guid: 198690d7e0b944cbbf0020d4732a4f7d, type: 3}
       volume: 1
       pitch: 1
       gain: 1
@@ -123,7 +123,7 @@ MonoBehaviour:
     otherEffects: []
   cougar:
     attack:
-      clip: {fileID: 8300000, guid: 6489af1dea07240e09f73689f123e8fc, type: 3}
+      clip: {fileID: 8300000, guid: 1a62f7000c62401dbf2fad2a1196f20e, type: 3}
       volume: 1
       pitch: 1
       gain: 4
@@ -132,10 +132,10 @@ MonoBehaviour:
       clip: {fileID: 8300000, guid: f0e42ec20df7a4e69abdbed7281491ab, type: 3}
       volume: 1
       pitch: 1
-      gain: 4
+      gain: 1.72
       bitCrush: 0
     hit:
-      clip: {fileID: 8300000, guid: 2e606f0a1371241a5812c51cf5547b78, type: 3}
+      clip: {fileID: 8300000, guid: 95cc502d215040e1beeac7a0c32e6a47, type: 3}
       volume: 1
       pitch: 1
       gain: 4
@@ -144,7 +144,7 @@ MonoBehaviour:
       clip: {fileID: 8300000, guid: 07ff5f46464ed4f8aa3e1496d112c9d2, type: 3}
       volume: 1
       pitch: 1
-      gain: 1
+      gain: 0.9
       bitCrush: 0
     beastActivation:
       clip: {fileID: 8300000, guid: e8b8889c929a4183905752d03ca41bfd, type: 3}
@@ -153,7 +153,7 @@ MonoBehaviour:
       gain: 4
       bitCrush: 0
     beastAttack:
-      clip: {fileID: 8300000, guid: 8da6cd6412d64044a6a6a607f993531c, type: 3}
+      clip: {fileID: 8300000, guid: 347f0e945138432e91c93045f0496905, type: 3}
       volume: 1
       pitch: 1
       gain: 4
@@ -171,10 +171,10 @@ MonoBehaviour:
       clip: {fileID: 8300000, guid: 60fa8bb0d7c3e45b5a2e2c315c08c0ed, type: 3}
       volume: 1
       pitch: 1
-      gain: 4
+      gain: 2.57
       bitCrush: 0
     hit:
-      clip: {fileID: 8300000, guid: 919df76416ca74f049a4201bb481bb1c, type: 3}
+      clip: {fileID: 8300000, guid: bfb79ce752084f04b7db6e500385e9c9, type: 3}
       volume: 1
       pitch: 1
       gain: 4
@@ -183,16 +183,16 @@ MonoBehaviour:
       clip: {fileID: 8300000, guid: b59292b6c506f4fb4aeacebf354d22cf, type: 3}
       volume: 1
       pitch: 1
-      gain: 1
+      gain: 0.9
       bitCrush: 0
     beastActivation:
-      clip: {fileID: 8300000, guid: c5f00ab7e2ce4246a4f04c7f6dfe7c4c, type: 3}
+      clip: {fileID: 8300000, guid: 9059d5b6cb5d43a59b75e91d768e57ab, type: 3}
       volume: 1
       pitch: 1
       gain: 1
       bitCrush: 0
     beastAttack:
-      clip: {fileID: 8300000, guid: 6b3b9065aad24031a95fe8d673b75451, type: 3}
+      clip: {fileID: 8300000, guid: 695e3c6bc22d4380a2c07e9005200498, type: 3}
       volume: 1
       pitch: 1
       gain: 4
