@@ -6,11 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
-  - enabled: 1
     path: Assets/NGO_Minimal_Setup/NGO_Setup.unity
     guid: 1c50941ff004fcf4fa047dd5a6adafc3
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 207e09b4400c29f40b119222eb20c1f9
+  - enabled: 1
+    path: Assets/Scenes/SampleScene.unity
+    guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
     path: Assets/Scenes/Arena_03.unity
     guid: d33d57049487a9145aed16304aa7a1f6

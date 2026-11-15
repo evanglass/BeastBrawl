@@ -105,6 +105,11 @@ public class RoundManager : NetworkBehaviour
         var randomIndices = Enumerable.Range(0, spawnPositions.Count).OrderBy(x => Random.value).ToArray();
         var characters = Enumerable.Range(0, 4).OrderBy(x => Random.value).ToArray();
 
+        List<EagleCorner> eagleCorners = FindObjectsByType<EagleCorner>(FindObjectsSortMode.None).ToList();
+
+        eagleLeftCorner = eagleCorners.FirstOrDefault(c => c.LeftCorner)?.transform;
+        eagleRightCorner = eagleCorners.FirstOrDefault(c => !c.LeftCorner)?.transform;
+
         for (int i = 0; i < players.Count; i++)
         {
             var playerObject = players[i];
