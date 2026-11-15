@@ -131,6 +131,7 @@ MonoBehaviour:
   playOnStart: 1
   showTestControls: 0
   globalBpm: 100
+  masterVolume: 1
   drumVolume: 0.8
   grooveVolume: 0.8
   riffVolume: 0.65

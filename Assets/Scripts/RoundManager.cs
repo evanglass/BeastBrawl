@@ -235,7 +235,8 @@ public class RoundManager : NetworkBehaviour
     {
         int nonEliminatedPlayers = players.Count(p => p != null && !p.GetComponent<PlayerState>().Eliminated);
 
-        if (nonEliminatedPlayers <= 1)
+        // A one-player round is useful for practicing and testing controls.
+        if (nonEliminatedPlayers <= (playersPerRound == 1 ? 0 : 1))
         {
             CurrentState = RoundState.RoundEnding;
         }

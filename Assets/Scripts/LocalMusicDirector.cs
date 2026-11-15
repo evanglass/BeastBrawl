@@ -47,7 +47,9 @@ public sealed class LocalMusicDirector : MonoBehaviour
     private double introFightTime;
     private bool wasIntense;
     private AudioSource menuSource;
+    private MusicMasterGain menuMasterGain;
     private Coroutine menuFade;
+    private float menuFadeLevel;
 
     private void Awake()
     {
@@ -67,6 +69,7 @@ public sealed class LocalMusicDirector : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
         menuSource = gameObject.AddComponent<AudioSource>();
+        menuMasterGain = gameObject.AddComponent<MusicMasterGain>();
         menuSource.playOnAwake = false;
         menuSource.spatialBlend = 0f;
         menuSource.loop = true;
@@ -129,10 +132,11 @@ public sealed class LocalMusicDirector : MonoBehaviour
         if (!menuSource.isPlaying)
         {
             menuSource.clip = menuMusic;
+            menuFadeLevel = 0f;
             menuSource.volume = 0f;
             menuSource.Play();
         }
-        menuFade = StartCoroutine(FadeMenu(menuMusicVolume, .3f, false));
+        menuFade = StartCoroutine(FadeMenu(1f, .3f, false));
     }
 
     public void FadeMenuMusicOut(float duration = -1f)
@@ -145,21 +149,33 @@ public sealed class LocalMusicDirector : MonoBehaviour
 
     private IEnumerator FadeMenu(float target, float seconds, bool stop)
     {
-        float initial = menuSource.volume;
+        float initial = menuFadeLevel;
         float elapsed = 0f;
         while (elapsed < seconds)
         {
             elapsed += Time.unscaledDeltaTime;
-            menuSource.volume = Mathf.Lerp(initial, target, Mathf.Clamp01(elapsed / seconds));
+            menuFadeLevel = Mathf.Lerp(initial, target, Mathf.Clamp01(elapsed / seconds));
+            ApplyMenuVolume();
             yield return null;
         }
-        menuSource.volume = target;
+        menuFadeLevel = target;
+        ApplyMenuVolume();
         if (stop) menuSource.Stop();
         menuFade = null;
     }
 
+    private void ApplyMenuVolume()
+    {
+        if (menuSource != null)
+        {
+            menuSource.volume = Mathf.Clamp01(menuMusicVolume * menuFadeLevel);
+            if (menuMasterGain != null) menuMasterGain.gain = music != null ? music.MasterVolume : 1f;
+        }
+    }
+
     private void Update()
     {
+        ApplyMenuVolume();
         if (music == null) return;
         if (round == null || !round.IsSpawned) round = FindFirstObjectByType<RoundManager>();
         bool hasRound = round != null && round.IsSpawned;

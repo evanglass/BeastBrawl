@@ -35,6 +35,7 @@ public class EagleBeast : Beast
     private float originalGravity;
     private float aimAngle;
     private float aimTimer;
+    private float cornerTravelTimer;
     private float flightTimer;
     private EagleVisual.Phase phase;
 
@@ -60,20 +61,32 @@ public class EagleBeast : Beast
         Transform target = round == null ? null :
             (playerMove.Facing < 0 ? round.eagleLeftCorner : round.eagleRightCorner);
 
-        if (target == null || visual == null)
+        if (visual == null)
         {
-            Debug.LogWarning("Eagle beast needs an arena corner and EagleVisual.", this);
+            Debug.LogWarning("Eagle beast needs EagleVisual.", this);
             playerBeast.EndBeast();
             return;
         }
 
-        corner = target.position;
+        if (target != null) corner = target.position;
+        else
+        {
+            Camera camera = Camera.main;
+            if (camera != null)
+            {
+                var point = camera.ViewportToWorldPoint(new Vector3(playerMove.Facing < 0 ? .12f : .88f, .85f,
+                    Mathf.Abs(camera.transform.position.z - transform.position.z)));
+                corner = new Vector2(point.x, point.y);
+            }
+            else corner = rb.position + new Vector2(playerMove.Facing < 0 ? -5f : 5f, 5f);
+        }
         boomDirection = -playerMove.Facing;
         aimAngle = playerMove.Facing < 0 ? -45f : -135f;
         originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.zero;
         aimTimer = GameGlobals.Instance.beastDuration;
+        cornerTravelTimer = Mathf.Max(3f, Vector2.Distance(rb.position, corner) / Mathf.Max(1f, cornerSpeed) * 2f + 1f);
         phase = EagleVisual.Phase.FlyingToCorner;
         visual.SetAim(phase, aimAngle);
     }
@@ -86,7 +99,7 @@ public class EagleBeast : Beast
             return;
         }
 
-        if (phase == EagleVisual.Phase.FlyingToCorner || phase == EagleVisual.Phase.Aiming)
+        if (phase == EagleVisual.Phase.Aiming)
         {
             aimTimer -= deltaTime;
             if (aimTimer <= 0f)
@@ -98,6 +111,7 @@ public class EagleBeast : Beast
 
         if (phase == EagleVisual.Phase.FlyingToCorner)
         {
+            cornerTravelTimer -= deltaTime;
             bool isFarAway = Mathf.Abs(rb.position.y - corner.y) > 0.05f;
             Vector2 destination = isFarAway ? new Vector2(rb.position.x, corner.y) : corner;
 
@@ -105,7 +119,7 @@ public class EagleBeast : Beast
             rb.linearVelocity = Vector2.zero;
             rb.MovePosition(next);
 
-            if (Vector2.Distance(rb.position, corner) < 0.05f)
+            if (Vector2.Distance(rb.position, corner) < 0.05f || cornerTravelTimer <= 0f)
             {
                 phase = EagleVisual.Phase.Aiming;
                 visual.SetAim(phase, aimAngle);
@@ -132,7 +146,6 @@ public class EagleBeast : Beast
         if (phase != EagleVisual.Phase.Aiming)
             return;
 
-        GetComponent<PlayerVisual>().PlayEffectRpc(CharacterSfxManager.Effect.BeastAttack);
         Vector2 direction = Direction(aimAngle);
         float minDot = Mathf.Cos(boomHalfAngle * Mathf.Deg2Rad);
         HashSet<Rigidbody2D> hitBodies = new HashSet<Rigidbody2D>();

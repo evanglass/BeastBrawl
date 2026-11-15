@@ -11,7 +11,8 @@ Check each source page and license before release; the sounds do not all share t
 
 ### Jump
 - 330967__deleted_user_2104797__bird-flap-b-05.wav — https://freesound.org/s/330967/
-- 561009__turbofool__light-wing-flap.wav — https://freesound.org/s/561009/
+- 389633__stubb__wing-flap-2.wav — https://freesound.org/s/389633/
+  - `389633__stubb__wing-flap-2_balanced.wav` is a louder edit for the jump effect.
 - 877979__qvantor__whoosh-flutter-wings.wav — https://freesound.org/s/877979/
 
 ### Hit
@@ -35,6 +36,8 @@ Check each source page and license before release; the sounds do not all share t
 
 ### Jump
 - 507730__keskaowl__effortnoise.wav — https://freesound.org/s/507730/
+  - `507730__keskaowl__effortnoise_3x_timestretch.wav` is a three-times-faster, pitch-preserving edit; playback starts at the equivalent of 0.2 seconds into the original and retains the pitch drop and bit-crush.
+  - `507730__keskaowl__effortnoise_6x_timestretch.wav` is a six-times-faster, pitch-preserving edit of this recording; playback adds the existing pitch drop and bit-crush.
 - 661242__deqsterslab__swing-grunt.mp3 — https://freesound.org/s/661242/
 - 680135__deqsterslab__grunting-effort-pushing-something.wav — https://freesound.org/s/680135/
 
@@ -107,3 +110,7 @@ Check each source page and license before release; the sounds do not all share t
 
 ### Special Attack (user supplied; license not yet checked)
 - 737232__qubodup__short-water-squish.wav — https://freesound.org/s/737232/
+
+### Level-balanced edits
+
+Files ending in `_mix.wav` are compressed and level-balanced edits of the corresponding files listed above; they retain their original source and licensing.
