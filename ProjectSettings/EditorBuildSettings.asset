@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Arena_02.unity
     guid: aa9dc360f84c4fa479913d4a2633254b
+  - enabled: 1
+    path: Assets/MusicSystem/Scenes/Music_Test.unity
+    guid: 7df0ec84b76cb442d90c98ee1a482a21
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: cb42d5f5012c7f24395d97d2c29e28cf, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

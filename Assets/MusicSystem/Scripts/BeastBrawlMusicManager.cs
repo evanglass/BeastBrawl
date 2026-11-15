@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BeastBrawl.Music
@@ -13,106 +14,314 @@ namespace BeastBrawl.Music
             Master
         }
 
-        [Serializable]
-        public sealed class Track
+        public enum MusicCategory
         {
-            public string displayName;
-            public AudioClip clip;
-
-            [Min(1)] public int bpm = 100;
-            [Min(1)] public int bars = 8;
+            Drums,
+            Groove,
+            Riff,
+            Lead,
+            SoloSong,
+            SoloLead
         }
 
-        [Header("Music Tracks")]
-        public Track[] grooves =
+        [Serializable]
+        public sealed class LoopTrack
         {
-            new Track
+            public string displayName = "New Track";
+            public AudioClip clip;
+
+            [Min(1)]
+            public int bars = 8;
+
+            [Range(0f, 1f)]
+            public float volume = 1f;
+        }
+
+        [Serializable]
+        public sealed class FeatureTrack
+        {
+            public string displayName = "New Track";
+            public AudioClip clip;
+
+            public bool hasLeadIn;
+
+            [Min(0)]
+            public int leadInBars;
+
+            [Range(0f, 1f)]
+            public float volume = 1f;
+        }
+
+        [Serializable]
+        public sealed class CharacterTracks
+        {
+            public FeatureTrack[] riffs =
+                new FeatureTrack[0];
+
+            public FeatureTrack[] leads =
+                new FeatureTrack[0];
+        }
+
+        [Header("Drums")]
+        public LoopTrack[] drums =
+        {
+            new LoopTrack
             {
-                displayName = "Groove 16 Bar",
-                bpm = 100,
-                bars = 16
-            },
-            new Track
-            {
-                displayName = "Groove 8 Bar",
-                bpm = 100,
+                displayName = "Drums",
                 bars = 8
             }
         };
 
-        public Track[] masters =
+        [Header("Stereo Grooves")]
+        public LoopTrack[] grooves =
         {
-            new Track
+            new LoopTrack
             {
-                displayName = "Master 32 Bar",
-                bpm = 100,
-                bars = 32
+                displayName = "Groove 16",
+                bars = 16
             }
         };
 
-        public Track[] melodies =
-        {
-            new Track
-            {
-                displayName = "Eagle Man",
-                bpm = 100,
-                bars = 4
-            },
-            new Track
-            {
-                displayName = "Grandma Tarantula",
-                bpm = 100,
-                bars = 4
-            },
-            new Track
-            {
-                displayName = "Serpent Sam",
-                bpm = 100,
-                bars = 4
-            },
-            new Track
-            {
-                displayName = "Bruce the Bear",
-                bpm = 100,
-                bars = 4
-            }
-        };
+        [Header("Bruce the Bear")]
+        public CharacterTracks bruce =
+            new CharacterTracks();
+
+        [Header("Eagle Man")]
+        public CharacterTracks eagle =
+            new CharacterTracks();
+
+        [Header("Crimson Cougar")]
+        public CharacterTracks cougar =
+            new CharacterTracks();
+
+        [Header("Serpent Sam")]
+        public CharacterTracks serpent =
+            new CharacterTracks();
+
+        [Header("Solo Songs")]
+        public LoopTrack[] soloSongs =
+            new LoopTrack[0];
+
+        [Header("Solo Leads")]
+        public LoopTrack[] soloLeads =
+            new LoopTrack[0];
 
         [Header("Playback")]
         public bool playOnStart = true;
         public bool showTestControls = true;
 
+        [Min(1)]
+        public int globalBpm = 100;
+
+        [Range(0f, 1f)]
+        public float drumVolume = 0.8f;
+
         [Range(0f, 1f)]
         public float grooveVolume = 0.8f;
 
         [Range(0f, 1f)]
-        public float masterVolume = 0.8f;
+        public float riffVolume = 0.65f;
 
         [Range(0f, 1f)]
-        public float melodyVolume = 0.55f;
+        public float leadVolume = 0.65f;
 
-        public PlaybackMode Mode { get; private set; }
-            = PlaybackMode.Stopped;
+        [Range(0f, 1f)]
+        public float soloVolume = 0.8f;
 
-        public int Bpm { get; private set; } = 100;
+        [Range(-80f, -20f)]
+        public float fadeSilenceDb = -80f;
 
-        public int BeatInBar
+        [Range(0f, 1f)]
+        public float sidePan = 0.5f;
+
+        [Min(1)]
+        public int soloLeadPanCycleBars = 4;
+
+        [Header("Automation")]
+        public bool automaticGrooveReturn = true;
+        public bool alternateDrumsEvery16Bars = true;
+
+        private const int BeatsPerBar = 4;
+        private const int BarsPerBlock = 4;
+        private const int DrumSectionBars = 16;
+
+        private const double ScheduleLead = 0.75;
+        private const double FirstDelay = 1.5;
+        private const double Safety = 0.05;
+
+        private const int SearchLimit = 256;
+
+        private sealed class Voice
         {
-            get { return barClockBeat; }
+            public AudioSource source;
+            public Job current;
+        }
+
+        private sealed class Job
+        {
+            public MusicCategory category;
+            public Voice voice;
+            public AudioClip clip;
+            public string name;
+
+            public int character;
+            public int block;
+            public int side;
+
+            public double start;
+            public double anchor;
+            public double end;
+
+            public double fadeInStart = double.NaN;
+            public double fadeInEnd = double.NaN;
+
+            public double fadeOutStart = double.NaN;
+            public double fadeOutEnd = double.NaN;
+
+            public float gain;
+
+            public bool loop;
+            public bool committed;
+            public bool cancelled;
+            public bool failed;
+            public bool autoGroove;
+
+            public int prerollBars;
+        }
+
+        private readonly List<Job> jobs =
+            new List<Job>();
+
+        private readonly Dictionary<int, int> sides =
+            new Dictionary<int, int>();
+
+        private readonly Dictionary<MusicCategory, Voice[]> pools =
+            new Dictionary<MusicCategory, Voice[]>();
+
+        private readonly Dictionary<MusicCategory, int>
+            featureNextBlock =
+                new Dictionary<MusicCategory, int>();
+
+        private double origin;
+
+        private int alternateSide = -1;
+        private int drumIndex = -1;
+        private int nextDrumBlock = -1;
+        private int forcedDrumIndex = -1;
+
+        private bool drumsEnabled;
+
+        private Job pendingAutoGroove;
+        private Job currentGroove;
+
+        private double manualGrooveExitUntil;
+
+        private bool initialized;
+
+        private string status = "Ready";
+        private Vector2 scroll;
+
+        private double BarTime
+        {
+            get
+            {
+                return 240.0 / globalBpm;
+            }
+        }
+
+        private double BlockTime
+        {
+            get
+            {
+                return 4.0 * BarTime;
+            }
+        }
+
+        public int Bpm
+        {
+            get
+            {
+                return globalBpm;
+            }
         }
 
         public int BarInTrack
         {
-            get { return barClockTrack; }
+            get
+            {
+                if (!initialized)
+                    return 1;
+
+                double elapsed = Math.Max(
+                    0,
+                    AudioSettings.dspTime - origin
+                );
+
+                return Math.Max(
+                    1,
+                    (int)Math.Floor(
+                        elapsed / BarTime
+                    ) + 1
+                );
+            }
+        }
+
+        public int BeatInBar
+        {
+            get
+            {
+                if (!initialized)
+                    return 1;
+
+                double elapsed = Math.Max(
+                    0,
+                    AudioSettings.dspTime - origin
+                );
+
+                return (int)Math.Floor(
+                    (elapsed % BarTime) /
+                    (BarTime / BeatsPerBar)
+                ) + 1;
+            }
+        }
+
+        public PlaybackMode Mode
+        {
+            get
+            {
+                double now = AudioSettings.dspTime;
+
+                foreach (Job job in jobs)
+                {
+                    if (Valid(job) &&
+                        job.category ==
+                            MusicCategory.SoloSong &&
+                        job.start <= now &&
+                        now < job.end)
+                    {
+                        return PlaybackMode.Master;
+                    }
+                }
+
+                foreach (Job job in jobs)
+                {
+                    if (Valid(job) &&
+                        job.start <= now &&
+                        now < job.end)
+                    {
+                        return PlaybackMode.Groove;
+                    }
+                }
+
+                return PlaybackMode.Stopped;
+            }
         }
 
         public string CurrentTrackName
         {
             get
             {
-                return activeTrack == null
-                    ? "None"
-                    : activeTrack.displayName;
+                return Names(false);
             }
         }
 
@@ -120,744 +329,2276 @@ namespace BeastBrawl.Music
         {
             get
             {
-                return pending && pendingTrack != null
-                    ? pendingTrack.displayName
-                    : "None";
-            }
-        }
-
-        private readonly AudioSource[] grooveSources =
-            new AudioSource[2];
-
-        private readonly AudioSource[] masterSources =
-            new AudioSource[2];
-
-        private readonly AudioSource[] melodySources =
-            new AudioSource[4];
-
-        private readonly bool[] melodyPlaying = new bool[4];
-        private readonly bool[] melodyScheduled = new bool[4];
-        private readonly bool[] melodyTarget = new bool[4];
-
-        private readonly double[] melodyTime = new double[4];
-
-        private AudioSource activeSource;
-        private AudioSource nextSource;
-
-        private Track activeTrack;
-        private Track pendingTrack;
-
-        private PlaybackMode nextMode;
-
-        private double sectionStart;
-        private double switchTime;
-        private double fadeStart;
-
-        private bool pending;
-        private bool masterExitFade;
-
-        private int barClockBeat = 1;
-        private int barClockTrack = 1;
-
-        private string status = "Ready";
-
-        private const int BeatsPerBar = 4;
-        private const double SchedulingLead = 0.15;
-        private const double FirstPlayLead = 0.30;
-
-        private double BarSeconds
-        {
-            get { return 240.0 / Bpm; }
-        }
-
-        private int TrackBarCount
-        {
-            get
-            {
-                return activeTrack == null
-                    ? 0
-                    : activeTrack.bars;
+                return Names(true);
             }
         }
 
         private void Awake()
         {
-            for (int i = 0; i < grooveSources.Length; i++)
-            {
-                grooveSources[i] =
-                    MakeSource("Groove Player " + (i + 1));
-            }
+            globalBpm = Mathf.Max(1, globalBpm);
 
-            for (int i = 0; i < masterSources.Length; i++)
-            {
-                masterSources[i] =
-                    MakeSource("Master Player " + (i + 1));
-            }
+            CreatePool(MusicCategory.Drums, 2);
+            CreatePool(MusicCategory.Groove, 2);
+            CreatePool(MusicCategory.Riff, 2);
+            CreatePool(MusicCategory.Lead, 2);
+            CreatePool(MusicCategory.SoloSong, 2);
+            CreatePool(MusicCategory.SoloLead, 1);
 
-            for (int i = 0; i < melodySources.Length; i++)
-            {
-                melodySources[i] =
-                    MakeSource("Melody Player " + (i + 1));
-            }
+            origin = AudioSettings.dspTime + FirstDelay;
+
+            initialized = true;
         }
 
-        private AudioSource MakeSource(string objectName)
+        private void CreatePool(
+            MusicCategory category,
+            int count
+        )
         {
-            GameObject child = new GameObject(objectName);
+            Voice[] voices = new Voice[count];
 
-            child.transform.SetParent(transform, false);
+            for (int i = 0; i < count; i++)
+            {
+                GameObject child = new GameObject(
+                    category + " Player " + (i + 1)
+                );
 
-            AudioSource source = child.AddComponent<AudioSource>();
+                child.transform.SetParent(
+                    transform,
+                    false
+                );
 
-            source.playOnAwake = false;
-            source.spatialBlend = 0f;
-            source.loop = true;
-            source.volume = 1f;
+                AudioSource source =
+                    child.AddComponent<AudioSource>();
 
-            return source;
+                source.playOnAwake = false;
+                source.spatialBlend = 0f;
+                source.loop = false;
+
+                voices[i] = new Voice
+                {
+                    source = source
+                };
+            }
+
+            pools[category] = voices;
+            featureNextBlock[category] = 0;
         }
 
         private void Start()
         {
-            if (playOnStart)
+            if (playOnStart &&
+                grooves != null &&
+                grooves.Length > 0 &&
+                grooves[0] != null &&
+                grooves[0].clip != null)
             {
-                PlayGrooveNow(0);
+                QueueGroove(0);
             }
         }
 
-        private void Update()
+        private double At(int block)
         {
-            double now = AudioSettings.dspTime;
-
-            if (activeTrack != null && now >= sectionStart)
-            {
-                double elapsed = Math.Max(
-                    0,
-                    now - sectionStart
-                );
-
-                double measure = BarSeconds;
-
-                barClockTrack =
-                    (int)(
-                        Math.Floor(elapsed / measure)
-                        % TrackBarCount
-                    ) + 1;
-
-                UpdateBeatClock(elapsed, measure);
-            }
-
-            if (masterExitFade &&
-                activeSource != null &&
-                now >= fadeStart)
-            {
-                double duration = switchTime - fadeStart;
-
-                if (duration > 0)
-                {
-                    float fraction = Mathf.Clamp01(
-                        (float)((now - fadeStart) / duration)
-                    );
-
-                    activeSource.volume =
-                        masterVolume * (1f - fraction);
-                }
-            }
-
-            if (pending && now >= switchTime)
-            {
-                if (activeSource != null)
-                {
-                    activeSource.Stop();
-                }
-
-                activeSource = nextSource;
-                activeTrack = pendingTrack;
-
-                Mode = nextMode;
-                Bpm = activeTrack.bpm;
-
-                sectionStart = switchTime;
-
-                barClockTrack = 1;
-                barClockBeat = 1;
-
-                nextSource = null;
-                pendingTrack = null;
-
-                pending = false;
-                masterExitFade = false;
-
-                status = "Playing " + activeTrack.displayName;
-            }
-
-            for (int i = 0; i < melodySources.Length; i++)
-            {
-                if (!melodyScheduled[i])
-                {
-                    continue;
-                }
-
-                if (now < melodyTime[i])
-                {
-                    continue;
-                }
-
-                melodyScheduled[i] = false;
-                melodyPlaying[i] = melodyTarget[i];
-
-                if (!melodyPlaying[i])
-                {
-                    melodySources[i].Stop();
-                }
-            }
+            return origin + block * BlockTime;
         }
 
-        private void UpdateBeatClock(
-            double elapsed,
-            double measure
+        private int NextBlock(
+            double secondsBeforeAnchor
         )
         {
-            double position = elapsed % measure;
+            double deadline =
+                AudioSettings.dspTime +
+                ScheduleLead +
+                secondsBeforeAnchor;
 
-            barClockBeat = Math.Min(
-                BeatsPerBar,
-                (int)Math.Floor(
-                    position / (measure / BeatsPerBar)
-                ) + 1
+            return Math.Max(
+                0,
+                (int)Math.Ceiling(
+                    (deadline - origin) /
+                    BlockTime - 1e-9
+                )
             );
         }
 
-        // Direct AudioClip reference.
-        // No Resources.Load or resource path required.
-
-        private bool TryLoad(Track track, out AudioClip clip)
+        private static bool Valid(Job job)
         {
-            clip = null;
+            return job != null &&
+                   !job.cancelled &&
+                   !job.failed;
+        }
 
-            if (track == null)
+        private static bool Intersects(
+            double a,
+            double b,
+            double c,
+            double d
+        )
+        {
+            return a < d && c < b;
+        }
+
+        private static double Duration(AudioClip clip)
+        {
+            return (double)clip.samples /
+                   clip.frequency;
+        }
+
+        private int Intro(FeatureTrack track)
+        {
+            return track.hasLeadIn
+                ? Mathf.Max(0, track.leadInBars)
+                : 0;
+        }
+
+        private float CategoryGain(
+            MusicCategory category
+        )
+        {
+            switch (category)
             {
-                status = "Track configuration is missing";
-                Debug.LogWarning(status);
+                case MusicCategory.Drums:
+                    return drumVolume;
+
+                case MusicCategory.Groove:
+                    return grooveVolume;
+
+                case MusicCategory.Riff:
+                    return riffVolume;
+
+                case MusicCategory.Lead:
+                    return leadVolume;
+
+                default:
+                    return soloVolume;
+            }
+        }
+
+        private bool CheckLoop(
+            LoopTrack track,
+            MusicCategory category
+        )
+        {
+            if (track == null ||
+                track.clip == null ||
+                track.bars < 1)
+            {
+                status = "Missing clip or bars";
                 return false;
             }
 
-            if (track.bpm < 1 || track.bars < 1)
+            if ((category == MusicCategory.Groove ||
+                 category == MusicCategory.Drums) &&
+                Math.Abs(
+                    Duration(track.clip) -
+                    track.bars * BarTime
+                ) > 0.015)
             {
-                status = "Invalid BPM or bar count";
-                Debug.LogWarning(status);
-                return false;
-            }
-
-            if (track.clip == null)
-            {
-                status = "AudioClip missing: " +
+                status =
+                    "Audio length / BPM mismatch: " +
                     track.displayName;
 
-                Debug.LogWarning(
-                    status +
-                    ". Drag an audio file into the Clip field."
-                );
-
+                Debug.LogWarning(status, this);
                 return false;
             }
 
-            clip = track.clip;
-
-            double expected =
-                track.bars * BeatsPerBar * 60.0 / track.bpm;
-
-            double difference =
-                Math.Abs(clip.length - expected);
-
-            if (difference > 0.05)
+            if (category == MusicCategory.Groove &&
+                track.bars < 4)
             {
-                Debug.LogWarning(
-                    track.displayName +
-                    ": duration " +
-                    clip.length.ToString("F3") +
-                    "s; expected " +
-                    expected.ToString("F3") +
-                    "s. Loop may not align with the clock."
-                );
+                return false;
             }
 
             return true;
         }
 
-        private AudioSource AvailableSource(PlaybackMode mode)
+        private bool CheckFeature(FeatureTrack track)
         {
-            AudioSource[] sources =
-                mode == PlaybackMode.Groove
-                    ? grooveSources
-                    : masterSources;
-
-            foreach (AudioSource source in sources)
+            if (track == null ||
+                track.clip == null)
             {
-                if (source != activeSource &&
-                    source != nextSource)
+                status = "Missing riff or lead clip";
+                return false;
+            }
+
+            if (Duration(track.clip) + 0.015 <
+                (4 + Intro(track)) * BarTime)
+            {
+                status =
+                    "Feature shorter than 4 bars plus intro: " +
+                    track.displayName;
+
+                Debug.LogWarning(status, this);
+                return false;
+            }
+
+            return true;
+        }
+
+        private Voice Reserve(
+            MusicCategory category,
+            double start,
+            double end
+        )
+        {
+            foreach (Voice voice in pools[category])
+            {
+                bool free = true;
+
+                foreach (Job job in jobs)
                 {
-                    return source;
+                    if (Valid(job) &&
+                        job.voice == voice &&
+                        Intersects(
+                            start - Safety,
+                            end,
+                            job.start,
+                            job.end + Safety
+                        ))
+                    {
+                        free = false;
+                        break;
+                    }
                 }
+
+                if (free)
+                    return voice;
             }
 
             return null;
         }
 
-        private void Begin(Track track, PlaybackMode mode)
-        {
-            AudioClip clip;
-
-            if (!TryLoad(track, out clip))
-            {
-                return;
-            }
-
-            StopAllMusic();
-
-            AudioSource source = AvailableSource(mode);
-
-            if (source == null)
-            {
-                status = "No available audio player";
-                return;
-            }
-
-            source.clip = clip;
-            source.loop = true;
-
-            source.volume =
-                mode == PlaybackMode.Groove
-                    ? grooveVolume
-                    : masterVolume;
-
-            sectionStart =
-                AudioSettings.dspTime + FirstPlayLead;
-
-            source.PlayScheduled(sectionStart);
-
-            activeSource = source;
-            activeTrack = track;
-
-            Mode = mode;
-            Bpm = track.bpm;
-
-            status = "Playing " + track.displayName;
-        }
-
-        private double NextBoundary(double period)
-        {
-            double now =
-                AudioSettings.dspTime + SchedulingLead;
-
-            if (now < sectionStart)
-            {
-                return sectionStart;
-            }
-
-            double count =
-                Math.Floor(
-                    (now - sectionStart) / period
-                ) + 1;
-
-            return sectionStart + count * period;
-        }
-
-        private void Queue(
-            Track track,
-            PlaybackMode mode
+        private bool HasCategory(
+            MusicCategory category,
+            double time
         )
         {
-            AudioClip clip;
-
-            if (!TryLoad(track, out clip))
+            foreach (Job job in jobs)
             {
-                return;
+                if (Valid(job) &&
+                    job.category == category &&
+                    job.start <= time &&
+                    time < job.end)
+                {
+                    return true;
+                }
             }
 
-            if (pending)
-            {
-                status =
-                    "Transition already queued; wait until it completes";
+            return false;
+        }
 
-                Debug.LogWarning(status);
-                return;
+        private bool AnyFeatureBetween(
+            double begin,
+            double end
+        )
+        {
+            foreach (Job job in jobs)
+            {
+                if (Valid(job) &&
+                    (job.category == MusicCategory.Lead ||
+                     job.category == MusicCategory.Riff) &&
+                    Intersects(
+                        begin,
+                        end,
+                        job.start,
+                        job.anchor + BlockTime
+                    ))
+                {
+                    return true;
+                }
             }
 
-            if (Mode == PlaybackMode.Stopped)
+            return false;
+        }
+
+        private bool SoloConflict(
+            double start,
+            double end
+        )
+        {
+            foreach (Job job in jobs)
             {
-                Begin(track, mode);
-                return;
+                if (Valid(job) &&
+                    job.category ==
+                        MusicCategory.SoloSong &&
+                    Intersects(
+                        start,
+                        end,
+                        job.start,
+                        job.end
+                    ))
+                {
+                    return true;
+                }
             }
 
-            double when;
+            return false;
+        }
 
-            if (Mode == PlaybackMode.Groove &&
-                mode == PlaybackMode.Groove)
+        private CharacterTracks Character(int id)
+        {
+            switch (id)
             {
-                // Wait for the current groove loop to finish.
+                case 1:
+                    return bruce;
 
-                when = NextBoundary(
-                    activeTrack.bars * BarSeconds
+                case 2:
+                    return eagle;
+
+                case 3:
+                    return cougar;
+
+                case 4:
+                    return serpent;
+
+                default:
+                    return null;
+            }
+        }
+
+        private string CharacterName(int id)
+        {
+            switch (id)
+            {
+                case 1:
+                    return "Bruce";
+
+                case 2:
+                    return "Eagle";
+
+                case 3:
+                    return "Cougar";
+
+                case 4:
+                    return "Serpent";
+
+                default:
+                    return "Unknown";
+            }
+        }
+
+        private FeatureTrack RandomFeature(
+            FeatureTrack[] tracks
+        )
+        {
+            List<FeatureTrack> possible =
+                new List<FeatureTrack>();
+
+            if (tracks != null)
+            {
+                foreach (FeatureTrack track in tracks)
+                {
+                    if (track != null &&
+                        track.clip != null &&
+                        CheckFeature(track))
+                    {
+                        possible.Add(track);
+                    }
+                }
+            }
+
+            if (possible.Count == 0)
+                return null;
+
+            return possible[
+                UnityEngine.Random.Range(
+                    0,
+                    possible.Count
+                )
+            ];
+        }
+
+        private int PanSide(
+            int character,
+            int block
+        )
+        {
+            foreach (Job job in jobs)
+            {
+                if (Valid(job) &&
+                    job.character == character &&
+                    job.block == block &&
+                    job.side != 0)
+                {
+                    return job.side;
+                }
+            }
+
+            foreach (Job job in jobs)
+            {
+                if (Valid(job) &&
+                    job.character != 0 &&
+                    job.character != character &&
+                    job.block == block &&
+                    job.side != 0)
+                {
+                    sides[character] = -job.side;
+                    return -job.side;
+                }
+            }
+
+            int prior;
+
+            if (sides.TryGetValue(character, out prior))
+                return prior;
+
+            int chosen = alternateSide;
+
+            alternateSide = -chosen;
+            sides[character] = chosen;
+
+            return chosen;
+        }
+
+        private bool OccupiedFeatureBlock(
+            MusicCategory category,
+            int character,
+            int block
+        )
+        {
+            foreach (Job job in jobs)
+            {
+                if (Valid(job) &&
+                    (job.category == MusicCategory.Riff ||
+                     job.category == MusicCategory.Lead) &&
+                    job.block == block &&
+                    (job.category == category ||
+                     job.character == character))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool QueueFeature(
+            MusicCategory category,
+            int character,
+            FeatureTrack track
+        )
+        {
+            if (!initialized ||
+                !CheckFeature(track))
+            {
+                return false;
+            }
+
+            int introBars = Intro(track);
+
+            int first = Math.Max(
+                NextBlock(
+                    (introBars +
+                     (category == MusicCategory.Lead
+                         ? 4
+                         : 0)) * BarTime
+                ),
+                featureNextBlock[category]
+            );
+
+            for (int block = first;
+                 block < first + SearchLimit;
+                 block++)
+            {
+                if (OccupiedFeatureBlock(
+                    category,
+                    character,
+                    block
+                ))
+                {
+                    continue;
+                }
+
+                double anchor = At(block);
+
+                double start =
+                    anchor - introBars * BarTime;
+
+                double end =
+                    start + Duration(track.clip);
+
+                if (SoloConflict(start, end))
+                    continue;
+
+                Voice voice = Reserve(
+                    category,
+                    start,
+                    end
                 );
-            }
-            else if (Mode == PlaybackMode.Master)
-            {
-                // Finish the next complete bar,
-                // fading during that final bar.
 
-                when =
-                    NextBoundary(BarSeconds) + BarSeconds;
+                if (voice == null)
+                    continue;
+
+                Job job = new Job
+                {
+                    category = category,
+                    voice = voice,
+                    clip = track.clip,
+                    name = track.displayName,
+                    character = character,
+
+                    side = PanSide(
+                        character,
+                        block
+                    ),
+
+                    block = block,
+                    start = start,
+                    anchor = anchor,
+                    end = end,
+
+                    gain =
+                        CategoryGain(category) *
+                        track.volume
+                };
+
+                jobs.Add(job);
+
+                featureNextBlock[category] = block + 1;
+
+                if (category == MusicCategory.Lead)
+                {
+                    EndGrooveAt(
+                        start + 4 * BarTime,
+                        2
+                    );
+                }
+                else
+                {
+                    bool precedingRiff = false;
+
+                    foreach (Job other in jobs)
+                    {
+                        if (other != job &&
+                            Valid(other) &&
+                            other.category ==
+                                MusicCategory.Riff &&
+                            other.block == block - 1)
+                        {
+                            precedingRiff = true;
+                        }
+                    }
+
+                    if (precedingRiff)
+                    {
+                        EndGrooveAt(anchor, 2);
+                    }
+                }
+
+                CancelAutomaticIfConflicting(
+                    start,
+                    anchor + BlockTime
+                );
+
+                status =
+                    "Queued " +
+                    CharacterName(character) +
+                    " " + category +
+                    " at bar " +
+                    (4 * block + 1);
+
+                return true;
+            }
+
+            status =
+                "No free musical slot for " +
+                track.displayName;
+
+            Debug.LogWarning(status, this);
+            return false;
+        }
+
+        public void QueueCharacterRiff(int characterId)
+        {
+            CharacterTracks character =
+                Character(characterId);
+
+            if (character == null)
+                return;
+
+            FeatureTrack track =
+                RandomFeature(character.riffs);
+
+            if (track != null)
+            {
+                QueueFeature(
+                    MusicCategory.Riff,
+                    characterId,
+                    track
+                );
             }
             else
             {
-                // Groove to master:
-                // switch at the next bar boundary.
-
-                when = NextBoundary(BarSeconds);
+                status =
+                    "No valid riffs for " +
+                    CharacterName(characterId);
             }
+        }
 
-            AudioSource destination = AvailableSource(mode);
+        public void QueueCharacterLead(int characterId)
+        {
+            CharacterTracks character =
+                Character(characterId);
 
-            if (destination == null)
-            {
-                status = "No available music player";
+            if (character == null)
                 return;
-            }
 
-            destination.clip = clip;
-            destination.loop = true;
+            FeatureTrack track =
+                RandomFeature(character.leads);
 
-            destination.volume =
-                mode == PlaybackMode.Groove
-                    ? grooveVolume
-                    : masterVolume;
-
-            destination.PlayScheduled(when);
-
-            if (activeSource != null)
+            if (track != null)
             {
-                activeSource.SetScheduledEndTime(when);
+                QueueFeature(
+                    MusicCategory.Lead,
+                    characterId,
+                    track
+                );
             }
-
-            nextSource = destination;
-            pendingTrack = track;
-            nextMode = mode;
-
-            switchTime = when;
-            pending = true;
-
-            masterExitFade =
-                Mode == PlaybackMode.Master;
-
-            if (masterExitFade)
+            else
             {
-                fadeStart = when - BarSeconds;
+                status =
+                    "No valid leads for " +
+                    CharacterName(characterId);
             }
+        }
 
-            if (mode == PlaybackMode.Master)
+        public void QueueSpecificRiff(
+            int characterId,
+            int index
+        )
+        {
+            CharacterTracks c = Character(characterId);
+
+            if (c != null &&
+                c.riffs != null &&
+                index >= 0 &&
+                index < c.riffs.Length)
             {
-                StopMelodiesAt(when);
+                QueueFeature(
+                    MusicCategory.Riff,
+                    characterId,
+                    c.riffs[index]
+                );
+            }
+        }
+
+        public void QueueSpecificLead(
+            int characterId,
+            int index
+        )
+        {
+            CharacterTracks c = Character(characterId);
+
+            if (c != null &&
+                c.leads != null &&
+                index >= 0 &&
+                index < c.leads.Length)
+            {
+                QueueFeature(
+                    MusicCategory.Lead,
+                    characterId,
+                    c.leads[index]
+                );
+            }
+        }
+
+        private bool AddDrumSegment(
+            int index,
+            int block
+        )
+        {
+            if (drums == null ||
+                index < 0 ||
+                index >= drums.Length ||
+                !CheckLoop(
+                    drums[index],
+                    MusicCategory.Drums
+                ))
+            {
+                return false;
             }
 
-            status = "Queued " + track.displayName;
+            LoopTrack track = drums[index];
 
-            Debug.Log(
-                status +
-                " at DSP " +
-                when.ToString("F3")
+            double start = At(block);
+
+            double end =
+                start + DrumSectionBars * BarTime;
+
+            if (SoloConflict(start, end))
+                return false;
+
+            Voice voice = Reserve(
+                MusicCategory.Drums,
+                start,
+                end
             );
+
+            if (voice == null)
+                return false;
+
+            jobs.Add(new Job
+            {
+                category = MusicCategory.Drums,
+                voice = voice,
+                clip = track.clip,
+                name = track.displayName,
+                block = block,
+                start = start,
+                anchor = start,
+                end = end,
+                loop = true,
+
+                gain =
+                    drumVolume * track.volume
+            });
+
+            drumIndex = index;
+
+            nextDrumBlock =
+                block +
+                DrumSectionBars / BarsPerBlock;
+
+            return true;
         }
 
-        public void PlayGrooveNow(int index)
+        public void QueueDrums(int index)
         {
-            if (grooves == null ||
+            if (!initialized ||
+                drums == null ||
                 index < 0 ||
-                index >= grooves.Length)
+                index >= drums.Length ||
+                !CheckLoop(
+                    drums[index],
+                    MusicCategory.Drums
+                ))
             {
                 return;
             }
 
-            Begin(grooves[index], PlaybackMode.Groove);
+            if (!drumsEnabled)
+            {
+                int block = NextBlock(0);
+
+                if (AddDrumSegment(index, block))
+                {
+                    drumsEnabled = true;
+
+                    status =
+                        "Queued drums at bar " +
+                        (4 * block + 1);
+                }
+            }
+            else
+            {
+                forcedDrumIndex = index;
+
+                status =
+                    "Drum change queued for next " +
+                    "16-bar boundary";
+            }
         }
 
-        public void PlayMasterNow(int index)
+        private void MaintainDrums(double now)
         {
-            if (masters == null ||
-                index < 0 ||
-                index >= masters.Length)
+            if (!drumsEnabled ||
+                nextDrumBlock < 0)
             {
                 return;
             }
 
-            Begin(masters[index], PlaybackMode.Master);
+            double start = At(nextDrumBlock);
+
+            if (start > now + BlockTime)
+                return;
+
+            int next = forcedDrumIndex >= 0
+                ? forcedDrumIndex
+                : drumIndex;
+
+            if (forcedDrumIndex < 0 &&
+                alternateDrumsEvery16Bars &&
+                drums != null &&
+                drums.Length > 1)
+            {
+                for (int step = 1;
+                     step <= drums.Length;
+                     step++)
+                {
+                    int candidate =
+                        (drumIndex + step) %
+                        drums.Length;
+
+                    if (drums[candidate] != null &&
+                        drums[candidate].clip != null &&
+                        CheckLoop(
+                            drums[candidate],
+                            MusicCategory.Drums
+                        ))
+                    {
+                        next = candidate;
+                        break;
+                    }
+                }
+            }
+
+            if (AddDrumSegment(next, nextDrumBlock))
+            {
+                forcedDrumIndex = -1;
+            }
+        }
+
+        private LoopTrack RandomGroove()
+        {
+            List<LoopTrack> available =
+                new List<LoopTrack>();
+
+            if (grooves != null)
+            {
+                foreach (LoopTrack track in grooves)
+                {
+                    if (track != null &&
+                        track.clip != null &&
+                        CheckLoop(
+                            track,
+                            MusicCategory.Groove
+                        ))
+                    {
+                        available.Add(track);
+                    }
+                }
+            }
+
+            if (available.Count == 0)
+                return null;
+
+            return available[
+                UnityEngine.Random.Range(
+                    0,
+                    available.Count
+                )
+            ];
+        }
+
+        private bool QueueGrooveAt(
+            LoopTrack track,
+            int fullBlock,
+            int fadeBars,
+            bool automatic
+        )
+        {
+            if (!CheckLoop(
+                track,
+                MusicCategory.Groove
+            ))
+            {
+                return false;
+            }
+
+            double anchor = At(fullBlock);
+
+            double start =
+                anchor - fadeBars * BarTime;
+
+            if (start <
+                AudioSettings.dspTime + ScheduleLead)
+            {
+                return false;
+            }
+
+            if (SoloConflict(
+                start,
+                anchor + Duration(track.clip)
+            ))
+            {
+                return false;
+            }
+
+            if (AnyLeadBetween(
+                start,
+                anchor + Duration(track.clip)
+            ))
+            {
+                return false;
+            }
+
+            Voice voice = Reserve(
+                MusicCategory.Groove,
+                start,
+                double.PositiveInfinity
+            );
+
+            if (voice == null)
+                return false;
+
+            Job job = new Job
+            {
+                category = MusicCategory.Groove,
+                voice = voice,
+                clip = track.clip,
+                name = track.displayName,
+                block = fullBlock,
+                start = start,
+                anchor = anchor,
+                end = double.PositiveInfinity,
+                loop = true,
+
+                gain =
+                    grooveVolume * track.volume,
+
+                fadeInStart = start,
+                fadeInEnd = anchor,
+
+                prerollBars = fadeBars,
+                autoGroove = automatic
+            };
+
+            Job previous = CurrentGrooveJob();
+
+            jobs.Add(job);
+
+            if (previous != null &&
+                previous != job &&
+                previous.end > anchor)
+            {
+                EndJob(previous, anchor, 2);
+            }
+
+            currentGroove = job;
+
+            if (automatic)
+            {
+                pendingAutoGroove = job;
+            }
+            else
+            {
+                pendingAutoGroove = null;
+            }
+
+            status =
+                (automatic ? "AUTO " : "Queued ") +
+                "groove " +
+                track.displayName +
+                " full at bar " +
+                (fullBlock * 4 + 1);
+
+            return true;
+        }
+
+        private Job CurrentGrooveJob()
+        {
+            double now = AudioSettings.dspTime;
+
+            if (Valid(currentGroove) &&
+                currentGroove.end > now)
+            {
+                return currentGroove;
+            }
+
+            Job latest = null;
+
+            foreach (Job job in jobs)
+            {
+                if (Valid(job) &&
+                    job.category ==
+                        MusicCategory.Groove &&
+                    job.end > now &&
+                    (latest == null ||
+                     job.start > latest.start))
+                {
+                    latest = job;
+                }
+            }
+
+            return latest;
+        }
+
+        private bool AnyLeadBetween(
+            double start,
+            double end
+        )
+        {
+            foreach (Job job in jobs)
+            {
+                if (Valid(job) &&
+                    job.category ==
+                        MusicCategory.Lead &&
+                    Intersects(
+                        start,
+                        end,
+                        job.start,
+                        job.anchor + BlockTime
+                    ))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void QueueGroove(int index)
         {
             if (grooves == null ||
                 index < 0 ||
-                index >= grooves.Length)
+                index >= grooves.Length ||
+                !CheckLoop(
+                    grooves[index],
+                    MusicCategory.Groove
+                ))
             {
                 return;
             }
 
-            Queue(grooves[index], PlaybackMode.Groove);
+            CancelPendingAutomatic();
+
+            int first = NextBlock(2 * BarTime);
+
+            for (int block = first;
+                 block < first + SearchLimit;
+                 block++)
+            {
+                if (QueueGrooveAt(
+                    grooves[index],
+                    block,
+                    2,
+                    false
+                ))
+                {
+                    return;
+                }
+            }
+
+            status =
+                "No legal groove start available";
         }
 
-        public void QueueMaster(int index)
+        private void EndJob(
+            Job job,
+            double end,
+            int fadeBars
+        )
         {
-            if (masters == null ||
-                index < 0 ||
-                index >= masters.Length)
+            if (!Valid(job) ||
+                end >= job.end)
             {
                 return;
             }
 
-            Queue(masters[index], PlaybackMode.Master);
+            if (job.start >= end)
+            {
+                Cancel(job);
+                return;
+            }
+
+            job.end = end;
+
+            if (fadeBars > 0)
+            {
+                job.fadeOutStart =
+                    end - fadeBars * BarTime;
+
+                job.fadeOutEnd = end;
+            }
+
+            if (job.committed &&
+                job.voice.current == job &&
+                end > AudioSettings.dspTime + Safety)
+            {
+                job.voice.source.SetScheduledEndTime(end);
+            }
         }
 
-        public void EndMasterToGroove(int index)
+        private void EndGrooveAt(
+            double end,
+            int fadeBars
+        )
         {
-            if (Mode != PlaybackMode.Master)
+            foreach (Job job in jobs)
             {
-                status = "Master is not playing";
-                return;
+                if (Valid(job) &&
+                    job.category ==
+                        MusicCategory.Groove &&
+                    job.start < end &&
+                    job.end > end)
+                {
+                    EndJob(job, end, fadeBars);
+                }
             }
 
-            QueueGroove(index);
+            if (currentGroove != null &&
+                currentGroove.end <= end)
+            {
+                currentGroove = null;
+            }
         }
 
-        public void SetMelody(int index, bool enabled)
+        private void Cancel(Job job)
         {
-            if (index < 0 ||
-                index >= melodySources.Length ||
-                melodies == null ||
-                index >= melodies.Length)
+            if (!Valid(job))
+                return;
+
+            if (job.committed &&
+                job.voice.current == job)
+            {
+                job.voice.source.Stop();
+                job.voice.current = null;
+            }
+
+            job.cancelled = true;
+
+            if (currentGroove == job)
+                currentGroove = null;
+
+            if (pendingAutoGroove == job)
+                pendingAutoGroove = null;
+        }
+
+        private void CancelPendingAutomatic()
+        {
+            if (Valid(pendingAutoGroove) &&
+                pendingAutoGroove.start >
+                AudioSettings.dspTime + ScheduleLead)
+            {
+                Cancel(pendingAutoGroove);
+            }
+        }
+
+        private void CancelAutomaticIfConflicting(
+            double start,
+            double end
+        )
+        {
+            if (Valid(pendingAutoGroove) &&
+                pendingAutoGroove.start >
+                AudioSettings.dspTime + ScheduleLead &&
+                Intersects(
+                    start,
+                    end,
+                    pendingAutoGroove.start,
+                    pendingAutoGroove.anchor
+                ))
+            {
+                Cancel(pendingAutoGroove);
+            }
+        }
+
+        // Automatic groove uses the SAME two-bar
+        // fade and SAME next-boundary calculation
+        // as pressing the manual QUEUE UP button.
+        private void AutomaticGrooveCheck(double now)
+        {
+            if (!automaticGrooveReturn ||
+                !drumsEnabled ||
+                !HasCategory(
+                    MusicCategory.Drums,
+                    now
+                ))
             {
                 return;
             }
 
-            if (Mode != PlaybackMode.Groove)
+            // A previously scheduled automatic groove
+            // no longer blocks recovery after it ends.
+            if (pendingAutoGroove != null &&
+                (!Valid(pendingAutoGroove) ||
+                 pendingAutoGroove.end <= now))
+            {
+                pendingAutoGroove = null;
+            }
+
+            if (Valid(pendingAutoGroove) ||
+                CurrentGrooveJob() != null ||
+                now < manualGrooveExitUntil)
             {
                 return;
             }
 
-            if (pending &&
-                nextMode == PlaybackMode.Master)
+            // Use the exact manual queue calculation.
+            int first = NextBlock(2 * BarTime);
+
+            for (int block = first;
+                 block < first + SearchLimit;
+                 block++)
             {
-                return;
-            }
+                double anchor = At(block);
+                double fadeStart =
+                    anchor - 2 * BarTime;
 
-            if (melodyScheduled[index] ||
-                melodyPlaying[index] == enabled)
-            {
-                return;
-            }
-
-            Track track = melodies[index];
-
-            if (track == null || track.bpm != Bpm)
-            {
-                status =
-                    "Melody BPM must match groove BPM";
-
-                return;
-            }
-
-            AudioSource source = melodySources[index];
-
-            double when = NextBoundary(BarSeconds);
-
-            if (enabled)
-            {
-                AudioClip clip;
-
-                if (!TryLoad(track, out clip))
+                // Do not automatically bring back a
+                // groove during queued riffs or leads.
+                if (AnyFeatureBetween(
+                    now,
+                    anchor + BlockTime
+                ))
                 {
                     return;
                 }
 
-                source.clip = clip;
-                source.loop = true;
-                source.volume = melodyVolume;
-
-                source.PlayScheduled(when);
-            }
-            else
-            {
-                source.SetScheduledEndTime(when);
-            }
-
-            melodyTime[index] = when;
-            melodyTarget[index] = enabled;
-            melodyScheduled[index] = true;
-        }
-
-        private void StopMelodiesAt(double when)
-        {
-            for (int i = 0; i < melodySources.Length; i++)
-            {
-                if (!melodyPlaying[i] &&
-                    !melodyScheduled[i])
+                if (SoloConflict(
+                    fadeStart,
+                    anchor + BlockTime
+                ))
                 {
                     continue;
                 }
 
-                melodySources[i].SetScheduledEndTime(when);
+                LoopTrack selected = RandomGroove();
 
-                melodyTarget[i] = false;
-                melodyTime[i] = when;
-                melodyScheduled[i] = true;
+                if (selected == null)
+                {
+                    return;
+                }
+
+                if (QueueGrooveAt(
+                    selected,
+                    block,
+                    2,
+                    true
+                ))
+                {
+                    status =
+                        "AUTO groove " +
+                        selected.displayName +
+                        " | manual queue timing | " +
+                        "full at bar " +
+                        (block * 4 + 1);
+
+                    return;
+                }
             }
         }
 
-        public void StopAllMusic()
+        public void QueueDown(MusicCategory category)
         {
-            foreach (AudioSource source in grooveSources)
+            if (category == MusicCategory.Riff ||
+                category == MusicCategory.Lead)
             {
-                if (source != null)
+                ClearPending(category);
+                return;
+            }
+
+            if (category == MusicCategory.Groove)
+            {
+                CancelPendingAutomatic();
+
+                Job groove = CurrentGrooveJob();
+
+                if (groove == null)
                 {
-                    source.Stop();
+                    status = "No groove active";
+                    return;
+                }
+
+                int fadeStartBlock = NextBlock(0);
+
+                double fadeStart =
+                    At(fadeStartBlock);
+
+                double fadeEnd =
+                    fadeStart + 8 * BarTime;
+
+                EndGrooveAt(fadeEnd, 8);
+
+                manualGrooveExitUntil = fadeEnd;
+
+                status =
+                    "Groove queued down: " +
+                    "8-bar fade from bar " +
+                    (fadeStartBlock * 4 + 1);
+
+                return;
+            }
+
+            if (category == MusicCategory.Drums)
+            {
+                drumsEnabled = false;
+                forcedDrumIndex = -1;
+                nextDrumBlock = -1;
+
+                double end = At(NextBlock(0));
+
+                foreach (Job job in jobs)
+                {
+                    if (Valid(job) &&
+                        job.category ==
+                            MusicCategory.Drums &&
+                        job.end > end)
+                    {
+                        EndJob(job, end, 0);
+                    }
+                }
+
+                status =
+                    "Drums ending on next " +
+                    "four-bar boundary";
+
+                return;
+            }
+
+            double boundary =
+                At(NextBlock(0));
+
+            foreach (Job job in jobs)
+            {
+                if (Valid(job) &&
+                    job.category == category &&
+                    job.end > boundary)
+                {
+                    EndJob(job, boundary, 0);
                 }
             }
-
-            foreach (AudioSource source in masterSources)
-            {
-                if (source != null)
-                {
-                    source.Stop();
-                }
-            }
-
-            foreach (AudioSource source in melodySources)
-            {
-                if (source != null)
-                {
-                    source.Stop();
-                }
-            }
-
-            for (int i = 0; i < melodyPlaying.Length; i++)
-            {
-                melodyPlaying[i] = false;
-                melodyScheduled[i] = false;
-                melodyTarget[i] = false;
-            }
-
-            activeSource = null;
-            nextSource = null;
-
-            activeTrack = null;
-            pendingTrack = null;
-
-            pending = false;
-            masterExitFade = false;
-
-            Mode = PlaybackMode.Stopped;
-
-            barClockBeat = 1;
-            barClockTrack = 1;
-
-            status = "Stopped";
         }
 
-        private void OnGUI()
+        public void QueueSoloSong(int index)
         {
-            if (!showTestControls)
+            if (soloSongs == null ||
+                index < 0 ||
+                index >= soloSongs.Length ||
+                !CheckLoop(
+                    soloSongs[index],
+                    MusicCategory.SoloSong
+                ))
             {
                 return;
             }
 
-            GUILayout.BeginArea(
-                new Rect(12, 12, 330, 540),
-                GUI.skin.box
-            );
+            LoopTrack track = soloSongs[index];
 
-            GUILayout.Label("BEASTBRAWL MUSIC TEST");
+            double duration =
+                Duration(track.clip);
 
-            GUILayout.Label(
-                "Mode: " + Mode +
-                " | BPM: " + Bpm
-            );
+            int first = NextBlock(0);
 
-            GUILayout.Label(
-                "Track: " + CurrentTrackName
-            );
-
-            GUILayout.Label(
-                "Bar: " + BarInTrack +
-                " | Beat: " + BeatInBar
-            );
-
-            GUILayout.Label(
-                "Queue: " + QueuedTrackName
-            );
-
-            GUILayout.Label(
-                "Status: " + status
-            );
-
-            GUILayout.Space(8);
-
-            if (GUILayout.Button("PLAY Groove 16 NOW"))
+            for (int block = first;
+                 block < first + SearchLimit;
+                 block++)
             {
-                PlayGrooveNow(0);
-            }
+                double start = At(block);
 
-            if (GUILayout.Button("PLAY Groove 8 NOW"))
-            {
-                PlayGrooveNow(1);
-            }
+                bool occupied = false;
 
-            if (GUILayout.Button("QUEUE Groove 16 at groove end"))
-            {
-                QueueGroove(0);
-            }
-
-            if (GUILayout.Button("QUEUE Groove 8 at groove end"))
-            {
-                QueueGroove(1);
-            }
-
-            GUILayout.Space(8);
-
-            if (GUILayout.Button("QUEUE Master 32 at next bar"))
-            {
-                QueueMaster(0);
-            }
-
-            if (GUILayout.Button("END Master -> Groove 16"))
-            {
-                EndMasterToGroove(0);
-            }
-
-            if (GUILayout.Button("END Master -> Groove 8"))
-            {
-                EndMasterToGroove(1);
-            }
-
-            GUILayout.Space(8);
-
-            for (int i = 0; i < 4; i++)
-            {
-                bool on = melodyScheduled[i]
-                    ? melodyTarget[i]
-                    : melodyPlaying[i];
-
-                string buttonText =
-                    "Melody " + (i + 1) +
-                    (on ? " OFF" : " ON");
-
-                if (GUILayout.Button(buttonText))
+                foreach (Job job in jobs)
                 {
-                    SetMelody(i, !on);
+                    if (Valid(job) &&
+                        Intersects(
+                            start,
+                            start + duration,
+                            job.start,
+                            job.end
+                        ))
+                    {
+                        occupied = true;
+                        break;
+                    }
+                }
+
+                if (occupied)
+                    continue;
+
+                Voice voice = Reserve(
+                    MusicCategory.SoloSong,
+                    start,
+                    start + duration
+                );
+
+                if (voice == null)
+                    continue;
+
+                jobs.Add(new Job
+                {
+                    category = MusicCategory.SoloSong,
+                    voice = voice,
+                    clip = track.clip,
+                    name = track.displayName,
+                    block = block,
+                    start = start,
+                    anchor = start,
+                    end = start + duration,
+
+                    gain =
+                        soloVolume * track.volume
+                });
+
+                status =
+                    "Queued solo song " +
+                    track.displayName;
+
+                return;
+            }
+
+            status =
+                "Solo song unavailable while " +
+                "other layers are looping";
+        }
+
+        public void QueueSoloLead(int index)
+        {
+            if (soloLeads == null ||
+                index < 0 ||
+                index >= soloLeads.Length ||
+                !CheckLoop(
+                    soloLeads[index],
+                    MusicCategory.SoloLead
+                ))
+            {
+                return;
+            }
+
+            LoopTrack track = soloLeads[index];
+
+            double duration =
+                Duration(track.clip);
+
+            int first = NextBlock(0);
+
+            for (int block = first;
+                 block < first + SearchLimit;
+                 block++)
+            {
+                double start = At(block);
+
+                if (SoloConflict(
+                    start,
+                    start + duration
+                ))
+                {
+                    continue;
+                }
+
+                Voice voice = Reserve(
+                    MusicCategory.SoloLead,
+                    start,
+                    start + duration
+                );
+
+                if (voice == null)
+                    continue;
+
+                jobs.Add(new Job
+                {
+                    category = MusicCategory.SoloLead,
+                    voice = voice,
+                    clip = track.clip,
+                    name = track.displayName,
+                    block = block,
+                    start = start,
+                    anchor = start,
+                    end = start + duration,
+
+                    gain =
+                        soloVolume * track.volume
+                });
+
+                status =
+                    "Queued solo lead " +
+                    track.displayName;
+
+                return;
+            }
+        }
+
+        public void QueueUp(
+            MusicCategory category,
+            int index
+        )
+        {
+            switch (category)
+            {
+                case MusicCategory.Drums:
+                    QueueDrums(index);
+                    break;
+
+                case MusicCategory.Groove:
+                    QueueGroove(index);
+                    break;
+
+                case MusicCategory.SoloSong:
+                    QueueSoloSong(index);
+                    break;
+
+                case MusicCategory.SoloLead:
+                    QueueSoloLead(index);
+                    break;
+
+                default:
+                    status =
+                        "Use character riff or lead queue";
+                    break;
+            }
+        }
+
+        public void RequestMusic(
+            MusicCategory category,
+            int characterId = 0,
+            int index = -1,
+            bool enabled = true
+        )
+        {
+            if (!enabled)
+            {
+                QueueDown(category);
+                return;
+            }
+
+            if (category == MusicCategory.Riff)
+            {
+                if (index < 0)
+                {
+                    QueueCharacterRiff(characterId);
+                }
+                else
+                {
+                    QueueSpecificRiff(
+                        characterId,
+                        index
+                    );
+                }
+
+                return;
+            }
+
+            if (category == MusicCategory.Lead)
+            {
+                if (index < 0)
+                {
+                    QueueCharacterLead(characterId);
+                }
+                else
+                {
+                    QueueSpecificLead(
+                        characterId,
+                        index
+                    );
+                }
+
+                return;
+            }
+
+            if (index < 0)
+            {
+                status =
+                    "Select a track index for " +
+                    category;
+
+                return;
+            }
+
+            QueueUp(category, index);
+        }
+
+        private float Envelope(
+            Job job,
+            double now
+        )
+        {
+            if (job.category != MusicCategory.Groove)
+                return 1f;
+
+            if (!double.IsNaN(job.fadeOutStart) &&
+                now >= job.fadeOutStart)
+            {
+                double length =
+                    job.fadeOutEnd -
+                    job.fadeOutStart;
+
+                float fraction = length <= 0
+                    ? 1f
+                    : Mathf.Clamp01(
+                        (float)(
+                            (now - job.fadeOutStart) /
+                            length
+                        )
+                    );
+
+                if (fraction >= 1f)
+                    return 0f;
+
+                return Mathf.Pow(
+                    10f,
+                    Mathf.Lerp(
+                        0f,
+                        fadeSilenceDb,
+                        fraction
+                    ) / 20f
+                );
+            }
+
+            if (!double.IsNaN(job.fadeInStart) &&
+                now < job.fadeInEnd)
+            {
+                double length =
+                    job.fadeInEnd -
+                    job.fadeInStart;
+
+                float fraction = length <= 0
+                    ? 1f
+                    : Mathf.Clamp01(
+                        (float)(
+                            (now - job.fadeInStart) /
+                            length
+                        )
+                    );
+
+                if (fraction <= 0f)
+                    return 0f;
+
+                return Mathf.Pow(
+                    10f,
+                    Mathf.Lerp(
+                        fadeSilenceDb,
+                        0f,
+                        fraction
+                    ) / 20f
+                );
+            }
+
+            return 1f;
+        }
+
+        private void Commit(Job job, double now)
+        {
+            if (!Valid(job) ||
+                job.committed ||
+                job.start > now + ScheduleLead)
+            {
+                return;
+            }
+
+            if (job.start <= now + Safety)
+            {
+                job.failed = true;
+
+                status =
+                    "MISSED DSP DEADLINE: " +
+                    job.name;
+
+                Debug.LogError(status, this);
+                return;
+            }
+
+            if (job.voice.current != null &&
+                job.voice.current != job)
+            {
+                Job previous =
+                    job.voice.current;
+
+                if (Valid(previous) &&
+                    previous.end + 0.005 > now)
+                {
+                    return;
+                }
+
+                job.voice.source.Stop();
+                job.voice.current = null;
+            }
+
+            AudioSource source =
+                job.voice.source;
+
+            source.Stop();
+
+            source.clip = job.clip;
+            source.loop = job.loop;
+
+            source.panStereo =
+                job.side * sidePan;
+
+            source.volume = job.gain;
+            source.timeSamples = 0;
+
+            if (job.category == MusicCategory.Groove)
+            {
+                int preroll =
+                    (int)Math.Round(
+                        job.prerollBars *
+                        BarTime *
+                        job.clip.frequency
+                    );
+
+                source.timeSamples = Mathf.Clamp(
+                    job.clip.samples - preroll,
+                    0,
+                    job.clip.samples - 1
+                );
+
+                source.volume = 0f;
+            }
+
+            source.PlayScheduled(job.start);
+
+            if (!double.IsInfinity(job.end))
+            {
+                source.SetScheduledEndTime(job.end);
+            }
+
+            job.voice.current = job;
+            job.committed = true;
+        }
+
+        private void Update()
+        {
+            if (!initialized)
+                return;
+
+            double now = AudioSettings.dspTime;
+
+            MaintainDrums(now);
+            AutomaticGrooveCheck(now);
+
+            foreach (Job job in jobs)
+            {
+                Commit(job, now);
+            }
+
+            foreach (Job job in jobs)
+            {
+                if (!Valid(job) ||
+                    !job.committed ||
+                    job.voice.current != job ||
+                    now < job.start ||
+                    now >= job.end)
+                {
+                    continue;
+                }
+
+                if (job.category ==
+                    MusicCategory.Groove)
+                {
+                    job.voice.source.volume =
+                        job.gain *
+                        Envelope(job, now);
+                }
+
+                if (job.category ==
+                    MusicCategory.SoloLead)
+                {
+                    double period =
+                        Math.Max(
+                            1,
+                            soloLeadPanCycleBars
+                        ) * BarTime;
+
+                    job.voice.source.panStereo =
+                        sidePan *
+                        (float)Math.Sin(
+                            2.0 * Math.PI *
+                            (now - job.start) /
+                            period
+                        );
                 }
             }
 
+            for (int i = jobs.Count - 1;
+                 i >= 0;
+                 i--)
+            {
+                Job job = jobs[i];
+
+                if (!job.cancelled &&
+                    !job.failed &&
+                    now < job.end + Safety)
+                {
+                    continue;
+                }
+
+                if (job.voice.current == job)
+                {
+                    job.voice.source.Stop();
+                    job.voice.current = null;
+                }
+
+                if (pendingAutoGroove == job)
+                    pendingAutoGroove = null;
+
+                if (currentGroove == job)
+                    currentGroove = null;
+
+                jobs.RemoveAt(i);
+            }
+        }
+
+        public void ClearPending(
+            MusicCategory category
+        )
+        {
+            double now = AudioSettings.dspTime;
+
+            for (int i = jobs.Count - 1;
+                 i >= 0;
+                 i--)
+            {
+                if (Valid(jobs[i]) &&
+                    jobs[i].category == category &&
+                    jobs[i].start >
+                        now + ScheduleLead)
+                {
+                    Cancel(jobs[i]);
+                }
+            }
+
+            status =
+                "Cleared future " +
+                category;
+        }
+
+        public void ClearCharacterPending(
+            int characterId
+        )
+        {
+            double now = AudioSettings.dspTime;
+
+            for (int i = jobs.Count - 1;
+                 i >= 0;
+                 i--)
+            {
+                if (Valid(jobs[i]) &&
+                    jobs[i].character ==
+                        characterId &&
+                    jobs[i].start >
+                        now + ScheduleLead)
+                {
+                    Cancel(jobs[i]);
+                }
+            }
+
+            status =
+                "Cleared future " +
+                CharacterName(characterId);
+        }
+
+        public void StopAllMusic()
+        {
+            if (!initialized)
+                return;
+
+            foreach (Voice[] pool in pools.Values)
+            {
+                foreach (Voice voice in pool)
+                {
+                    voice.source.Stop();
+                    voice.source.clip = null;
+                    voice.current = null;
+                }
+            }
+
+            jobs.Clear();
+            sides.Clear();
+
+            alternateSide = -1;
+            drumIndex = -1;
+            nextDrumBlock = -1;
+            forcedDrumIndex = -1;
+
+            drumsEnabled = false;
+
+            pendingAutoGroove = null;
+            currentGroove = null;
+
+            manualGrooveExitUntil = 0;
+
+            featureNextBlock[
+                MusicCategory.Riff
+            ] = 0;
+
+            featureNextBlock[
+                MusicCategory.Lead
+            ] = 0;
+
+            status =
+                "Stopped; global clock continues";
+        }
+
+        public void PlayGrooveNow(int index)
+        {
+            StopAllMusic();
+            QueueGroove(index);
+        }
+
+        public void PlayMasterNow(int index)
+        {
+            StopAllMusic();
+            QueueSoloSong(index);
+        }
+
+        public void QueueMaster(int index)
+        {
+            QueueSoloSong(index);
+        }
+
+        public void EndMasterToGroove(int index)
+        {
+            QueueDown(MusicCategory.SoloSong);
+            QueueGroove(index);
+        }
+
+        public void QueueRiff(int id)
+        {
+            QueueCharacterRiff(id);
+        }
+
+        public void QueueLead(int id)
+        {
+            QueueCharacterLead(id);
+        }
+
+        public void SetMelody(
+            int id,
+            bool enabled
+        )
+        {
+            if (enabled)
+            {
+                QueueCharacterLead(id);
+            }
+            else
+            {
+                ClearCharacterPending(id);
+            }
+        }
+
+        private string Names(bool upcoming)
+        {
+            double now = AudioSettings.dspTime;
+
+            List<string> names =
+                new List<string>();
+
+            foreach (Job job in jobs)
+            {
+                if (!Valid(job))
+                    continue;
+
+                bool show = upcoming
+                    ? job.start > now
+                    : job.start <= now &&
+                      now < job.end;
+
+                if (show)
+                {
+                    names.Add(
+                        job.name +
+                        (upcoming
+                            ? " @bar " +
+                              (job.block * 4 + 1)
+                            : "")
+                    );
+                }
+            }
+
+            return names.Count == 0
+                ? "None"
+                : string.Join(
+                    " | ",
+                    names.ToArray()
+                );
+        }
+
+        private int CountTracks(
+            FeatureTrack[] tracks
+        )
+        {
+            int count = 0;
+
+            if (tracks != null)
+            {
+                foreach (FeatureTrack track in tracks)
+                {
+                    if (track != null &&
+                        track.clip != null)
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        private void DrawFeatureList(
+            int id,
+            FeatureTrack[] tracks,
+            bool lead
+        )
+        {
+            if (tracks == null)
+                return;
+
+            for (int i = 0;
+                 i < tracks.Length;
+                 i++)
+            {
+                FeatureTrack track = tracks[i];
+
+                GUILayout.BeginHorizontal();
+
+                GUILayout.Label(
+                    track == null
+                        ? "Empty"
+                        : track.displayName
+                );
+
+                GUI.enabled =
+                    track != null &&
+                    track.clip != null;
+
+                int index = i;
+
+                if (GUILayout.Button(
+                    lead
+                        ? "QUEUE LEAD"
+                        : "QUEUE RIFF",
+                    GUILayout.Width(115)
+                ))
+                {
+                    if (lead)
+                    {
+                        QueueSpecificLead(
+                            id,
+                            index
+                        );
+                    }
+                    else
+                    {
+                        QueueSpecificRiff(
+                            id,
+                            index
+                        );
+                    }
+                }
+
+                GUI.enabled = true;
+
+                GUILayout.EndHorizontal();
+            }
+        }
+
+        private void DrawCharacter(int id)
+        {
+            CharacterTracks c = Character(id);
+
+            if (c == null)
+                return;
+
             GUILayout.Space(8);
 
-            if (GUILayout.Button("STOP ALL"))
+            GUILayout.Label(
+                "=== " +
+                CharacterName(id).ToUpperInvariant() +
+                " ==="
+            );
+
+            GUILayout.Label(
+                "Riffs: " +
+                CountTracks(c.riffs) +
+                " | Leads: " +
+                CountTracks(c.leads)
+            );
+
+            GUILayout.BeginHorizontal();
+
+            GUI.enabled =
+                CountTracks(c.riffs) > 0;
+
+            if (GUILayout.Button("RANDOM RIFF"))
+            {
+                QueueCharacterRiff(id);
+            }
+
+            GUI.enabled =
+                CountTracks(c.leads) > 0;
+
+            if (GUILayout.Button("RANDOM LEAD"))
+            {
+                QueueCharacterLead(id);
+            }
+
+            GUI.enabled = true;
+
+            GUILayout.EndHorizontal();
+
+            DrawFeatureList(
+                id,
+                c.riffs,
+                false
+            );
+
+            DrawFeatureList(
+                id,
+                c.leads,
+                true
+            );
+
+            if (GUILayout.Button(
+                "CLEAR CHARACTER WAITING"
+            ))
+            {
+                ClearCharacterPending(id);
+            }
+        }
+
+        private void DrawLoops(
+            MusicCategory category,
+            LoopTrack[] tracks
+        )
+        {
+            GUILayout.Space(8);
+
+            GUILayout.Label(
+                "=== " +
+                category.ToString().ToUpperInvariant() +
+                " ==="
+            );
+
+            if (tracks != null)
+            {
+                for (int i = 0;
+                     i < tracks.Length;
+                     i++)
+                {
+                    LoopTrack track = tracks[i];
+
+                    GUILayout.BeginHorizontal();
+
+                    GUILayout.Label(
+                        track == null
+                            ? "Empty"
+                            : track.displayName
+                    );
+
+                    GUI.enabled =
+                        track != null &&
+                        track.clip != null;
+
+                    int index = i;
+
+                    if (GUILayout.Button(
+                        "QUEUE UP",
+                        GUILayout.Width(115)
+                    ))
+                    {
+                        QueueUp(
+                            category,
+                            index
+                        );
+                    }
+
+                    GUI.enabled = true;
+
+                    GUILayout.EndHorizontal();
+                }
+            }
+
+            GUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("QUEUE DOWN"))
+            {
+                QueueDown(category);
+            }
+
+            if (GUILayout.Button("CLEAR WAITING"))
+            {
+                ClearPending(category);
+            }
+
+            GUILayout.EndHorizontal();
+        }
+
+        private void OnGUI()
+        {
+            if (!showTestControls ||
+                !initialized)
+            {
+                return;
+            }
+
+            float width = Mathf.Max(
+                200,
+                Mathf.Min(
+                    530,
+                    Screen.width - 24
+                )
+            );
+
+            float height = Mathf.Max(
+                200,
+                Mathf.Min(
+                    800,
+                    Screen.height - 24
+                )
+            );
+
+            GUILayout.BeginArea(
+                new Rect(
+                    12,
+                    12,
+                    width,
+                    height
+                ),
+                GUI.skin.box
+            );
+
+            GUILayout.Label(
+                "BEASTBRAWL MUSIC QUEUE MANAGER"
+            );
+
+            GUILayout.Label(
+                "Global bar " +
+                BarInTrack +
+                " | Beat " +
+                BeatInBar +
+                " | BPM " +
+                Bpm
+            );
+
+            GUILayout.Label(
+                "Playing: " +
+                CurrentTrackName
+            );
+
+            GUILayout.Label(
+                "Queued: " +
+                QueuedTrackName
+            );
+
+            GUILayout.Label(
+                "Status: " +
+                status
+            );
+
+            scroll = GUILayout.BeginScrollView(
+                scroll,
+                GUILayout.ExpandHeight(true)
+            );
+
+            DrawLoops(
+                MusicCategory.Drums,
+                drums
+            );
+
+            DrawLoops(
+                MusicCategory.Groove,
+                grooves
+            );
+
+            DrawCharacter(1);
+            DrawCharacter(2);
+            DrawCharacter(3);
+            DrawCharacter(4);
+
+            DrawLoops(
+                MusicCategory.SoloSong,
+                soloSongs
+            );
+
+            DrawLoops(
+                MusicCategory.SoloLead,
+                soloLeads
+            );
+
+            GUILayout.EndScrollView();
+
+            if (GUILayout.Button(
+                "STOP ALL IMMEDIATELY",
+                GUILayout.Height(34)
+            ))
             {
                 StopAllMusic();
             }
