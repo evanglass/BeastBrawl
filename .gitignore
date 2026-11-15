@@ -137,3 +137,11 @@ crashlytics-build.properties
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Local Python environments
+.music-analysis-venv/
+__pycache__/
+*.pyc
+
+# macOS metadata
+.DS_Store
