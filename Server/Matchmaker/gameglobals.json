@@ -1,0 +1,18 @@
+{
+  "consciousnessRecoveryRate": 5,
+  "consciousnessLossMultiplier": 2,
+  "boundaryY": -22,
+  "moveSpeed": 15,
+  "acceleration": 60,
+  "jumpForce": 20,
+  "gravityScale": 5,
+  "wallSlidingSpeed": 0.5,
+  "wallJumpForce": 10,
+  "maxJumps": 2,
+  "punchDamage": 20,
+  "punchCooldown": 0.2,
+  "punchKnockback": { "x": 20, "y": 10 },
+  "beastMeterGainRate": 2,
+  "beastMeterGainPerHit": 15,
+  "beastDuration": 5
+}

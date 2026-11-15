@@ -24,9 +24,17 @@ public class SceneLoader : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        SceneManager.sceneLoaded += OnSceneLoaded;
 #if !UNITY_SERVER || UNITY_EDITOR
         LoadMenu();
 #endif
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        var networkManager = NetworkManager.Singleton;
+        if (networkManager != null && networkManager.IsClient && !networkManager.IsServer && arenaScenes.Contains(scene.name))
+            UnloadMenu();
     }
 
     public void LoadMenu()
@@ -131,8 +139,12 @@ public class SceneLoader : MonoBehaviour
 
     public void UnloadMenu()
     {
-        if (SceneManager.GetSceneByName(menuScene).isLoaded)
-            SceneManager.UnloadSceneAsync(menuScene);
+        for (int i = SceneManager.sceneCount - 1; i >= 0; i--)
+        {
+            Scene scene = SceneManager.GetSceneAt(i);
+            if (scene.isLoaded && scene.name == menuScene)
+                SceneManager.UnloadSceneAsync(scene);
+        }
     }
 
     public void ReturnToMenu()
@@ -201,6 +213,7 @@ public class SceneLoader : MonoBehaviour
 
     private void OnDestroy()
     {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
         StopWaitingForArena();
     }
 }

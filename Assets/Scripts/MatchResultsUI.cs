@@ -16,7 +16,6 @@ public class MatchResultsUI : MonoBehaviour
 
     [SerializeField] private MatchManager matchManager;
     [SerializeField] private SceneLoader sceneLoader;
-    [SerializeField] private GameObject eventSystem;
     [SerializeField] private GameObject panel;
     [SerializeField] private Text title;
     [SerializeField] private Text status;
@@ -60,7 +59,6 @@ public class MatchResultsUI : MonoBehaviour
         disconnected = false;
         wasConnected = false;
         panel.SetActive(false);
-        eventSystem.SetActive(false);
         sceneLoader.ReturnToMenu();
     }
 
@@ -83,14 +81,11 @@ public class MatchResultsUI : MonoBehaviour
         }
 
         MatchManager.MatchPhase phase = connected ? matchManager.CurrentPhase : MatchManager.MatchPhase.Lobby;
-        bool overview = connected && phase == MatchManager.MatchPhase.Overview &&
-            networkManager.ServerTime.Time >= matchManager.PhaseDeadline;
         bool results = connected && phase == MatchManager.MatchPhase.RoundResults;
         bool finished = connected && phase == MatchManager.MatchPhase.MatchFinished;
         bool aborted = disconnected || (connected && phase == MatchManager.MatchPhase.Aborted);
         bool visible = results || finished || aborted;
 
-        eventSystem.SetActive(overview || finished || aborted);
         if (panel.activeSelf != visible)
             panel.SetActive(visible);
 

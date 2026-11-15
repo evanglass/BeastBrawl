@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using UnityEngine;
 
 public class GameGlobals : MonoBehaviour
@@ -29,5 +31,34 @@ public class GameGlobals : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+#if UNITY_SERVER && !UNITY_EDITOR
+        LoadServerConfiguration();
+#endif
     }
+
+#if UNITY_SERVER && !UNITY_EDITOR
+    private void LoadServerConfiguration()
+    {
+        string configPath = Environment.GetEnvironmentVariable("FERAL_GAME_CONFIG");
+        if (string.IsNullOrWhiteSpace(configPath))
+            configPath = Path.Combine(Path.GetDirectoryName(Application.dataPath), "gameglobals.json");
+
+        if (!File.Exists(configPath))
+        {
+            Debug.Log($"No game configuration found at {configPath}; using scene values.");
+            return;
+        }
+
+        try
+        {
+            JsonUtility.FromJsonOverwrite(File.ReadAllText(configPath), this);
+            Debug.Log($"Loaded game configuration from {configPath}.");
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"Could not load game configuration from {configPath}: {exception.Message}");
+        }
+    }
+#endif
 }

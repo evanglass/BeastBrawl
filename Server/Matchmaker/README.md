@@ -47,4 +47,10 @@ Certificate issuance and renewal must also work for the server's existing DNS an
 
 The room-port range is `FERAL_FIRST_ROOM_PORT` through `FERAL_FIRST_ROOM_PORT + FERAL_MAX_ROOMS - 1`. A new connection receives HTTP 503 when all room slots are occupied or no room port is available. Set `Logging__LogLevel__Default=Debug` to include the Unity processes' stdout in matchmaker logs.
 
+### Game balance
+
+Copy [gameglobals.json](gameglobals.json) beside the Unity server executable and edit its values to adjust gameplay without rebuilding. Alternatively, set `FERAL_GAME_CONFIG` to the absolute path of a JSON file before starting the matchmaker. Each new room process reads the file once on startup; existing rooms retain their current settings. If the file is absent, the server uses the values saved in the Unity scene. Omitted fields also retain their scene values. Invalid or unreadable files are reported in the server log.
+
+These settings affect the dedicated server's authoritative game simulation. Desktop LAN hosts and clients continue using their scene values.
+
 This is a single-machine, first-available matchmaker. It does not provide accounts, skill ratings, regional selection, or a persistent queue when the machine is full. Players must run matching client and server builds.

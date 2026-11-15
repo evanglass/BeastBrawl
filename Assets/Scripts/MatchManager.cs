@@ -284,9 +284,6 @@ public class MatchManager : NetworkBehaviour
 
     private void OnPhaseChanged(MatchPhase previous, MatchPhase current)
     {
-        if (!IsServer && current == MatchPhase.Overview && sceneLoader != null)
-            sceneLoader.UnloadMenu();
-
         if (current == MatchPhase.MatchFinished)
             FindFirstObjectByType<LocalMusicDirector>()?.NotifyMatchFinished();
     }
