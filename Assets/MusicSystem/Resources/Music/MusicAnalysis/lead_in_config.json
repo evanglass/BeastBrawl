@@ -1,0 +1,103 @@
+{
+  "description": "Explicit filename intros are detected automatically. Without an intro marker, extra bars are treated as outros. Use overrides only when the filename does not describe the actual audio.",
+  "bpm": 100,
+  "overrides": {},
+  "detected_tracks": {
+    "Drums/heavy_anders_16.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 0,
+      "measured_bars": 16,
+      "declared_bars": 16,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Drums/manchester_anders_16.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 0,
+      "measured_bars": 16,
+      "declared_bars": 16,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Grooves2/main_groove_32.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 0,
+      "measured_bars": 32,
+      "declared_bars": 32,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Leads/bear_lead_6bars.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 4,
+      "measured_bars": 8,
+      "declared_bars": 6,
+      "intro_source": "No intro specified",
+      "filename_bars_match": false
+    },
+    "Leads/eagle_lead1_5bars.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 1,
+      "measured_bars": 5,
+      "declared_bars": 5,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Leads/eagle_lead2_5bars.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 1,
+      "measured_bars": 5,
+      "declared_bars": 5,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Leads/serpent_lead1_5bars.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 1,
+      "measured_bars": 5,
+      "declared_bars": 5,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Leads/serpent_lead2_6bars_2intro.wav": {
+      "lead_in_bars": 2,
+      "outro_bars": 0,
+      "measured_bars": 6,
+      "declared_bars": 6,
+      "intro_source": "Explicit filename",
+      "filename_bars_match": true
+    },
+    "Masters/feralfightingsolosection.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 0,
+      "measured_bars": 32,
+      "declared_bars": 32,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Riffs/bear_riff1_4bars.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 0,
+      "measured_bars": 4,
+      "declared_bars": 4,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Riffs/eagle_riff_5bars.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 1,
+      "measured_bars": 5,
+      "declared_bars": 5,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    },
+    "Riffs/serpent_riff_4bars.wav": {
+      "lead_in_bars": 0,
+      "outro_bars": 0,
+      "measured_bars": 4,
+      "declared_bars": 4,
+      "intro_source": "No intro specified",
+      "filename_bars_match": true
+    }
+  }
+}
