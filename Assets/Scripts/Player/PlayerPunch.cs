@@ -100,8 +100,11 @@ public class PlayerPunch : NetworkBehaviour
             PlayerPunch otherPunch = other.GetComponent<PlayerPunch>();
             if (otherPunch != null)
             {
+                bool wasBeast = playerBeast.IsBeast;
                 otherPunch.ApplyPunch(bridge, playerBeast.GetPunchDamageMultiplier(), playerBeast.GetPunchKnockbackMultiplier());
                 playerBeast.Attack(other);
+                if (wasBeast && !playerBeast.IsBeast)
+                    break;
             }
         }
     }
