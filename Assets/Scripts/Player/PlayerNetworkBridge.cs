@@ -6,6 +6,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
 {
     private PlayerState playerState;
     private PlayerMove playerMove;
+    private PlayerBeast playerBeast;
     private Rigidbody2D rb;
     private NetworkVariable<bool> walking = new(false);
 
@@ -30,22 +31,37 @@ public class PlayerNetworkBridge : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    [SerializeField]
+    private NetworkVariable<float> beastMeter = new(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    [SerializeField]
+    private NetworkVariable<bool> isBeast = new(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     public float MoveHorizontal { get; private set; }
     public bool Jump { get; private set; }
     public bool Punch { get; private set; }
     public bool Beast { get; private set; }
 
     public bool IsConscious => isConscious.Value;
-
     public bool Eliminated => eliminated.Value;
-
     public int Facing => facing.Value;
     public bool Walking => walking.Value;
+    public float BeastMeter => beastMeter.Value;
+    public bool IsBeast => isBeast.Value;
 
     private void Awake()
     {
         playerState = GetComponent<PlayerState>();
         playerMove = GetComponent<PlayerMove>();
+        playerBeast = GetComponent<PlayerBeast>();
         rb = GetComponent<Rigidbody2D>();
     }
 
@@ -83,6 +99,8 @@ public class PlayerNetworkBridge : NetworkBehaviour
         eliminated.Value = playerState.Eliminated;
         facing.Value = playerMove.Facing;
         walking.Value = Mathf.Abs(rb.linearVelocity.x) > 0.1f;
+        beastMeter.Value = playerState.BeastMeter;
+        isBeast.Value = playerBeast.IsBeast;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]

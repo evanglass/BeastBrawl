@@ -29,6 +29,6 @@ public class PlayerActor : MonoBehaviour
             playerState.Eliminate();
         }
 
-        playerState.ServerTickRecovery(Time.fixedDeltaTime);
+        playerState.TickState(Time.fixedDeltaTime);
     }
 }

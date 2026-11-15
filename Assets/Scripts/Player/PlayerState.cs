@@ -3,6 +3,10 @@ using UnityEngine;
 public class PlayerState : MonoBehaviour
 {
     [SerializeField]
+    private float beastMeter = 0f;
+    public float BeastMeter => beastMeter;
+
+    [SerializeField]
     private float consciousness = 100f;
 
     [SerializeField]
@@ -16,8 +20,13 @@ public class PlayerState : MonoBehaviour
     private bool eliminated = false;
     public bool Eliminated => eliminated;
 
-    public void ServerTickRecovery(float deltaTime)
+    private bool shouldRechargeBeastMeter = true;
+
+    public void TickState(float deltaTime)
     {
+        if (shouldRechargeBeastMeter)
+            beastMeter = Mathf.Clamp(beastMeter + deltaTime * GameGlobals.Instance.beastMeterGainRate, 0f, 100f);
+
         GainConsciousness(deltaTime * GameGlobals.Instance.consciousnessRecoveryRate);
         if (consciousness >= 100f)
         {
@@ -58,11 +67,25 @@ public class PlayerState : MonoBehaviour
             timesLostConsciousness++;
             isConscious = false;
         }
+
+        if (shouldRechargeBeastMeter)
+            beastMeter = Mathf.Clamp(beastMeter + GameGlobals.Instance.beastMeterGainPerHit, 0f, 100f);
     }
 
     public void Eliminate()
     {
         eliminated = true;
+    }
+
+    public void UnleashBeast()
+    {
+        beastMeter = 0f;
+        shouldRechargeBeastMeter = false;
+    }
+
+    public void LeashBeast()
+    {
+        shouldRechargeBeastMeter = true;
     }
 
     public void Reset()
@@ -71,5 +94,7 @@ public class PlayerState : MonoBehaviour
         timesLostConsciousness = 0;
         isConscious = true;
         eliminated = false;
+        beastMeter = 0f;
+        shouldRechargeBeastMeter = true;
     }
 }

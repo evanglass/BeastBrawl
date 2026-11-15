@@ -128,6 +128,7 @@ public class RoundManager : NetworkBehaviour
             if (playerState != null)
             {
                 playerState.Reset();
+                playerObject.GetComponent<PlayerBeast>()?.Reset();
             }
         }
         CurrentState = RoundState.RoundInProgress;
