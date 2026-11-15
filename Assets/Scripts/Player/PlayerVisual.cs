@@ -29,8 +29,6 @@ public class PlayerVisual : NetworkBehaviour
 
     public int Facing => bridge?.Facing ?? 1;
 
-    public bool Punching { get; private set; } = false;
-
     public bool Conscious => bridge?.IsConscious ?? true;
 
     private void Awake()
@@ -47,12 +45,17 @@ public class PlayerVisual : NetworkBehaviour
             return;
 
         animator.SetBool("Walking", Walking);
-        animator.SetBool("Punching", Punching);
         animator.SetBool("Conscious", Conscious);
         animator.SetInteger("Character", (int)PlayerCharacter);
         animator.SetInteger("Facing", Facing);
 
         spriteRenderer.flipX = Facing < 0;
+    }
+
+    [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
+    public void PlayPunchRpc()
+    {
+        animator.SetTrigger("Punch");
     }
 
     public void AssignCharacter(int characterIndex)

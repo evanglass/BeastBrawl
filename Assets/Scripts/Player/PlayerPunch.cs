@@ -68,6 +68,7 @@ public class PlayerPunch : NetworkBehaviour
             return;
 
         cooldown = GameGlobals.Instance.punchCooldown;
+        GetComponent<PlayerVisual>().PlayPunchRpc();
 
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(LayerMask.GetMask("Players"));
