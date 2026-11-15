@@ -1,0 +1,203 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1339473918439046106
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8151001785885455748}
+  - component: {fileID: 2258541154167890029}
+  m_Layer: 0
+  m_Name: CharacterSfxManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8151001785885455748
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339473918439046106}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2258541154167890029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339473918439046106}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 270382cf157e44fb6921b1f6dc679ebe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterSfxManager
+  eagle:
+    attack:
+      clip: {fileID: 8300000, guid: 9f173b781224346bc8e281901d46897a, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1.5
+      bitCrush: 0
+    jump:
+      clip: {fileID: 8300000, guid: ddc7c69f8fcf549e7a83638c1b7becf4, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    hit:
+      clip: {fileID: 0}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    land:
+      clip: {fileID: 8300000, guid: 98c26a86d492f42178aad6503c3275cc, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastActivation:
+      clip: {fileID: 8300000, guid: 9fc8b139bcaa049caabc870bad3f3826, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastAttack:
+      clip: {fileID: 8300000, guid: c091b40dc4a67439390115f8e6073d0f, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    otherEffects: []
+  bear:
+    attack:
+      clip: {fileID: 8300000, guid: f59d1ec739fb94e3fb76e5c5e6641ef5, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    jump:
+      clip: {fileID: 8300000, guid: ce40f1bde7d7e415f8936a3c2601c301, type: 3}
+      volume: 1
+      pitch: 0.25
+      gain: 1
+      bitCrush: 0.12
+    hit:
+      clip: {fileID: 8300000, guid: 16cf3a93b53a74acbbd1eca0bcd7025c, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    land:
+      clip: {fileID: 8300000, guid: f015cc82b03214de7978a26384219714, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastActivation:
+      clip: {fileID: 8300000, guid: 376ed94164f1460fbecb22248af171fc, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastAttack:
+      clip: {fileID: 8300000, guid: afcb37407ca744be976b2b8fc838a76c, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    otherEffects: []
+  cougar:
+    attack:
+      clip: {fileID: 8300000, guid: 6489af1dea07240e09f73689f123e8fc, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    jump:
+      clip: {fileID: 8300000, guid: f0e42ec20df7a4e69abdbed7281491ab, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    hit:
+      clip: {fileID: 8300000, guid: 2e606f0a1371241a5812c51cf5547b78, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    land:
+      clip: {fileID: 8300000, guid: 07ff5f46464ed4f8aa3e1496d112c9d2, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastActivation:
+      clip: {fileID: 8300000, guid: e8b8889c929a4183905752d03ca41bfd, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastAttack:
+      clip: {fileID: 8300000, guid: 8da6cd6412d64044a6a6a607f993531c, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+      startSeconds: 7.2
+    otherEffects: []
+  snake:
+    attack:
+      clip: {fileID: 8300000, guid: af7f0495e79304ad4a66c2282ad7ddab, type: 3}
+      volume: 1
+      pitch: 1.25
+      gain: 1
+      bitCrush: 0
+    jump:
+      clip: {fileID: 8300000, guid: 60fa8bb0d7c3e45b5a2e2c315c08c0ed, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    hit:
+      clip: {fileID: 8300000, guid: 919df76416ca74f049a4201bb481bb1c, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    land:
+      clip: {fileID: 8300000, guid: b59292b6c506f4fb4aeacebf354d22cf, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastActivation:
+      clip: {fileID: 8300000, guid: c5f00ab7e2ce4246a4f04c7f6dfe7c4c, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    beastAttack:
+      clip: {fileID: 8300000, guid: 6b3b9065aad24031a95fe8d673b75451, type: 3}
+      volume: 1
+      pitch: 1
+      gain: 1
+      bitCrush: 0
+    otherEffects: []
+  masterVolume: 1
+  stereoWidth: 1
+  heightPitchVariation: 0.06
+  viewCamera: {fileID: 0}

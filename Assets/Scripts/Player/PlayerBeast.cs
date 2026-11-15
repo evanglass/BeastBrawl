@@ -73,6 +73,8 @@ public class PlayerBeast : NetworkBehaviour
             playerState.UnleashBeast();
             currentBeast.OnBeastStart(gameObject);
             beastTimer = GameGlobals.Instance.beastDuration;
+            if (isBeast)
+                GetComponent<PlayerVisual>().PlayEffectRpc(CharacterSfxManager.Effect.BeastActivation);
         }
     }
 

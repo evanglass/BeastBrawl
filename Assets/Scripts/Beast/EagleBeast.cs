@@ -132,6 +132,7 @@ public class EagleBeast : Beast
         if (phase != EagleVisual.Phase.Aiming)
             return;
 
+        GetComponent<PlayerVisual>().PlayEffectRpc(CharacterSfxManager.Effect.BeastAttack);
         Vector2 direction = Direction(aimAngle);
         float minDot = Mathf.Cos(boomHalfAngle * Mathf.Deg2Rad);
         HashSet<Rigidbody2D> hitBodies = new HashSet<Rigidbody2D>();

@@ -77,10 +77,18 @@ public class PlayerPunch : NetworkBehaviour
             return;
 
         cooldown = GameGlobals.Instance.punchCooldown * playerBeast.GetPunchCooldownMultiplier();
+        var visual = GetComponent<PlayerVisual>();
+        bool cougarBeast = playerBeast.IsBeast && visual.PlayerCharacter == PlayerVisual.Character.Cougar;
+        bool bearBeast = playerBeast.IsBeast && visual.PlayerCharacter == PlayerVisual.Character.Bear;
         if (!playerBeast.AutoAttack)
-            GetComponent<PlayerVisual>().PlayPunchRpc();
-        else
-            GetComponent<PlayerVisual>().PlayEffectRpc(CharacterSfxManager.Effect.Attack);
+        {
+            if (cougarBeast || bearBeast) visual.PlayBeastPunchRpc();
+            else visual.PlayPunchRpc();
+        }
+        else if (!cougarBeast)
+            visual.PlayEffectRpc(CharacterSfxManager.Effect.Attack);
+        if (bearBeast)
+            visual.PlayEffectRpc(CharacterSfxManager.Effect.BeastAttack);
 
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(LayerMask.GetMask("Players"));

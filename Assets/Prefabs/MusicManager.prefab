@@ -268,6 +268,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1874463436140443428}
   - component: {fileID: 1872023609817218353}
+  - component: {fileID: 8915241458860103770}
   m_Layer: 0
   m_Name: MusicManager
   m_TagString: Untagged
@@ -399,3 +400,30 @@ MonoBehaviour:
   soloLeadPanCycleBars: 4
   automaticGrooveReturn: 1
   alternateDrumsEvery16Bars: 1
+--- !u!114 &8915241458860103770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7252292146260037712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c50f1625410e5479a8d8a134ddaddf77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalMusicDirector
+  music: {fileID: 0}
+  persistAcrossScenes: 1
+  manageRoundMusic: 1
+  drumsIndex: 0
+  drumSoloBars: 4
+  calmFadeSeconds: 0.5
+  menuMusic: {fileID: 8300000, guid: 63d01ae02662448e934e0145026e0a9a, type: 3}
+  menuSceneName: MainMenu
+  menuMusicVolume: 0.7
+  menuFadeSeconds: 1.5
+  riffThreshold: 75
+  clearThreshold: 20
+  calmThreshold: 50
+  queueMeterRiffs: 1
+  queueBeastParts: 1

@@ -187,6 +187,9 @@ namespace BeastBrawl.Music
             public bool autoGroove;
 
             public int prerollBars;
+            public FeatureTrack featureTrack;
+            public int sampleOffset;
+            public int priority;
         }
 
         private readonly List<Job> jobs =
@@ -769,10 +772,35 @@ namespace BeastBrawl.Music
             return false;
         }
 
+        // Allow a later character to take a future repeated turn, without touching
+        // already committed audio or breaking the existing category/character rules.
+        private Job RepeatedFutureBlocker(MusicCategory category, int character, int block, int priority)
+        {
+            Job blocker = null;
+            foreach (Job job in jobs)
+            {
+                if (!Valid(job) || (job.category != MusicCategory.Riff && job.category != MusicCategory.Lead) || job.block != block)
+                    continue;
+                if (job.category != category && job.character != character) continue;
+                if (blocker != null) return null;
+                blocker = job;
+            }
+            if (blocker == null || blocker.category != category || blocker.character == character ||
+                blocker.featureTrack == null || blocker.priority > priority || blocker.committed || blocker.start <= AudioSettings.dspTime + ScheduleLead)
+                return null;
+            Job previous = null;
+            foreach (Job job in jobs)
+                if (Valid(job) && job.category == category && job.block < block &&
+                    (previous == null || job.block > previous.block)) previous = job;
+            return previous != null && previous.character == blocker.character ? blocker : null;
+        }
+
         private bool QueueFeature(
             MusicCategory category,
             int character,
-            FeatureTrack track
+            FeatureTrack track,
+            bool allowLookahead = true,
+            int priority = 0
         )
         {
             if (!initialized ||
@@ -783,27 +811,21 @@ namespace BeastBrawl.Music
 
             int introBars = Intro(track);
 
-            int first = Math.Max(
-                NextBlock(
-                    (introBars +
-                     (category == MusicCategory.Lead
-                         ? 4
-                         : 0)) * BarTime
-                ),
-                featureNextBlock[category]
+            // Search from the earliest legal block, including holes opened by canceled requests.
+            int first = NextBlock(
+                (introBars + (category == MusicCategory.Lead ? 4 : 0)) * BarTime
             );
 
             for (int block = first;
                  block < first + SearchLimit;
                  block++)
             {
-                if (OccupiedFeatureBlock(
-                    category,
-                    character,
-                    block
-                ))
+                Job displaced = null;
+                if (OccupiedFeatureBlock(category, character, block))
                 {
-                    continue;
+                    displaced = allowLookahead ? RepeatedFutureBlocker(category, character, block, priority) : null;
+                    if (displaced == null) continue;
+                    displaced.cancelled = true;
                 }
 
                 double anchor = At(block);
@@ -815,16 +837,33 @@ namespace BeastBrawl.Music
                     start + Duration(track.clip);
 
                 if (SoloConflict(start, end))
+                {
+                    if (displaced != null) displaced.cancelled = false;
                     continue;
+                }
 
-                Voice voice = Reserve(
-                    category,
-                    start,
-                    end
-                );
-
+                bool overlapsFeature = false;
+                foreach (Job other in jobs)
+                {
+                    if (Valid(other) && (other.category == MusicCategory.Riff || other.category == MusicCategory.Lead) &&
+                        (other.category == category || other.character == character) &&
+                        Intersects(start + .001, end - .001, other.start, other.end))
+                    {
+                        overlapsFeature = true;
+                        break;
+                    }
+                }
+                if (overlapsFeature)
+                {
+                    if (displaced != null) displaced.cancelled = false;
+                    continue;
+                }
+                Voice voice = Reserve(category, start, end);
                 if (voice == null)
+                {
+                    if (displaced != null) displaced.cancelled = false;
                     continue;
+                }
 
                 Job job = new Job
                 {
@@ -846,10 +885,19 @@ namespace BeastBrawl.Music
 
                     gain =
                         CategoryGain(category) *
-                        track.volume
+                        track.volume,
+                    featureTrack = track,
+                    priority = priority
                 };
 
                 jobs.Add(job);
+                if (displaced != null && !QueueFeature(displaced.category, displaced.character, displaced.featureTrack, false, displaced.priority))
+                {
+                    // Never lose an existing request if it cannot be rescheduled.
+                    Cancel(job);
+                    displaced.cancelled = false;
+                    continue;
+                }
 
                 featureNextBlock[category] = block + 1;
 
@@ -903,6 +951,139 @@ namespace BeastBrawl.Music
 
             Debug.LogWarning(status, this);
             return false;
+        }
+
+        private int PendingCharacterParts(int character, int minimumPriority = 0)
+        {
+            int count = 0;
+            double now = AudioSettings.dspTime;
+            foreach (Job job in jobs)
+                if (Valid(job) && job.character == character && job.start > now &&
+                    (job.category == MusicCategory.Riff || job.category == MusicCategory.Lead) &&
+                    job.priority >= minimumPriority) count++;
+            return count;
+        }
+
+        /// <summary>Meter buildup can have at most two not-yet-playing character parts.</summary>
+        public bool QueueBuildupRiff(int characterId)
+        {
+            CharacterTracks tracks = Character(characterId);
+            if (tracks == null || PendingCharacterParts(characterId) >= 2) return false;
+            FeatureTrack track = RandomFeature(tracks.riffs);
+            return track != null && QueueFeature(MusicCategory.Riff, characterId, track);
+        }
+
+        // A high-priority beast cue may move one not-yet-committed buildup request.
+        // Already playing or DSP-committed audio is never interrupted or discarded.
+        private bool QueueBeastAtBlock(MusicCategory category, int character, FeatureTrack track,
+            int block, double start, bool partial)
+        {
+            if (track == null || !CheckFeature(track) || PendingCharacterParts(character, 1) >= 2 ||
+                start <= AudioSettings.dspTime + Safety) return false;
+            Job blocker = null;
+            foreach (Job existing in jobs)
+            {
+                if (!Valid(existing) || (existing.category != MusicCategory.Riff && existing.category != MusicCategory.Lead) ||
+                    existing.block != block || existing.end <= start ||
+                    (existing.category != category && existing.character != character)) continue;
+                // Another player's lead has the next lead turn; use the riff fallback.
+                if (category == MusicCategory.Lead && existing.category == MusicCategory.Lead && existing.character != character)
+                    return false;
+                if (blocker != null || existing.priority > 0 || existing.committed || existing.featureTrack == null ||
+                    existing.start <= AudioSettings.dspTime + ScheduleLead) return false;
+                blocker = existing;
+            }
+            if (blocker != null) blocker.cancelled = true;
+            double blockStart = At(block);
+            double end = At(block + 1);
+            double offset = Intro(track) * BarTime + (partial ? start - blockStart : 0);
+            if (start >= end || offset < 0 || offset + (end - start) > Duration(track.clip) + .015 || SoloConflict(start, end))
+            {
+                if (blocker != null) blocker.cancelled = false;
+                return false;
+            }
+            // Keep the established one-riff / one-lead and one-part-per-character limits,
+            // including clips whose lead-ins or tails overlap a neighboring block.
+            foreach (Job existing in jobs)
+            {
+                if (Valid(existing) && (existing.category == MusicCategory.Riff || existing.category == MusicCategory.Lead) &&
+                    (existing.category == category || existing.character == character) &&
+                    Intersects(start, end, existing.start, existing.end))
+                {
+                    if (blocker != null) blocker.cancelled = false;
+                    return false;
+                }
+            }
+            Voice voice = Reserve(category, start, end);
+            if (voice == null)
+            {
+                if (blocker != null) blocker.cancelled = false;
+                return false;
+            }
+            Job job = new Job {
+                category = category, voice = voice, clip = track.clip, name = track.displayName,
+                character = character, side = PanSide(character, block), block = block,
+                start = start, anchor = blockStart, end = end,
+                gain = CategoryGain(category) * track.volume, featureTrack = track,
+                sampleOffset = (int)Math.Round(offset * track.clip.frequency), priority = 1,
+                fadeInStart = partial ? start : double.NaN,
+                fadeInEnd = partial ? end : double.NaN
+            };
+            jobs.Add(job);
+            if (blocker != null && !QueueFeature(blocker.category, blocker.character, blocker.featureTrack, false, blocker.priority))
+            {
+                Cancel(job); blocker.cancelled = false; return false;
+            }
+            if (category == MusicCategory.Lead) EndGrooveAt(start + 4 * BarTime, 2);
+            CancelAutomaticIfConflicting(start, end);
+            status = "Queued beast " + CharacterName(character) + " " + category + " at bar " + (4 * block + 1);
+            return true;
+        }
+
+        /// <summary>Prioritize up to two beast sections on the current and next musical grids.</summary>
+        public int QueueBeastSections(int characterId)
+        {
+            if (!initialized) return 0;
+            CharacterTracks tracks = Character(characterId);
+            if (tracks == null) return 0;
+            double now = AudioSettings.dspTime;
+            if (now < origin) return 0;
+            int block = Math.Max(0, (int)Math.Floor((now - origin) / BlockTime));
+            int barInBlock = Mathf.Clamp((int)Math.Floor((now - At(block)) / BarTime), 0, 3);
+            int queued = 0;
+            Job playing = null;
+            foreach (Job job in jobs)
+                if (Valid(job) && job.character == characterId &&
+                    (job.category == MusicCategory.Riff || job.category == MusicCategory.Lead) &&
+                    job.start <= now && job.end > now) { playing = job; break; }
+
+            // An already-playing part supplies the transition; do not replace it with
+            // another part from the same character in the middle of the grid.
+            if (barInBlock >= 2 && playing == null)
+            {
+                double start = now + ScheduleLead + Safety;
+                if (QueueBeastAtBlock(MusicCategory.Riff, characterId, RandomFeature(tracks.riffs), block, start, true) ||
+                    QueueBeastAtBlock(MusicCategory.Lead, characterId, RandomFeature(tracks.leads), block, start, true)) queued++;
+            }
+            double next = At(block + 1);
+            double originalEnd = playing != null ? playing.end : 0;
+            bool trimPlaying = playing != null && playing.end > next && next > now + ScheduleLead + Safety;
+            if (trimPlaying) playing.end = next;
+            if (next > now + ScheduleLead + Safety &&
+                ((!IsLeadPlaying && QueueBeastAtBlock(MusicCategory.Lead, characterId, RandomFeature(tracks.leads), block + 1, next, false)) ||
+                 QueueBeastAtBlock(MusicCategory.Riff, characterId, RandomFeature(tracks.riffs), block + 1, next, false))) queued++;
+            if (trimPlaying)
+            {
+                if (queued > 0)
+                {
+                    playing.fadeOutStart = Math.Max(now, next - .15);
+                    playing.fadeOutEnd = next;
+                    if (playing.committed && playing.voice.current == playing)
+                        playing.voice.source.SetScheduledEndTime(next);
+                }
+                else playing.end = originalEnd;
+            }
+            return queued;
         }
 
         public void QueueCharacterRiff(int characterId)
@@ -1094,6 +1275,67 @@ namespace BeastBrawl.Music
                     "Drum change queued for next " +
                     "16-bar boundary";
             }
+        }
+
+        // The fight-start time is bar 1. Drums enter on that downbeat and the
+        // groove fades in across the first four bars, aligned to the same grid.
+        public void BeginRoundIntro(double fightDspTime, int drumTrack)
+        {
+            if (!initialized) return;
+            StopAllMusic();
+            double now = AudioSettings.dspTime;
+            origin = fightDspTime;
+            if (grooves != null && grooves.Length > 0 && CheckLoop(grooves[0], MusicCategory.Groove))
+            {
+                if (!QueueGrooveAt(grooves[0], 1, 4, false))
+                    RecoverGroove(grooves[0], now);
+            }
+            if (drums != null && drumTrack >= 0 && drumTrack < drums.Length &&
+                CheckLoop(drums[drumTrack], MusicCategory.Drums))
+            {
+                drumIndex = drumTrack;
+                drumsEnabled = true;
+                if (fightDspTime > now + Safety && AddDrumSegment(drumTrack, 0)) return;
+                RecoverDrums(now);
+            }
+        }
+
+        private void RecoverGroove(LoopTrack track, double now)
+        {
+            if (track == null || !CheckLoop(track, MusicCategory.Groove)) return;
+            double start = Math.Max(now + 0.2, origin);
+            if (AnyLeadBetween(start, start + 0.25) || SoloConflict(start, start + 0.25)) return;
+            Voice voice = Reserve(MusicCategory.Groove, start, double.PositiveInfinity);
+            if (voice == null) return;
+            double length = Duration(track.clip);
+            double offset = ((start - origin) % length + length) % length;
+            currentGroove = new Job { category = MusicCategory.Groove, voice = voice,
+                clip = track.clip, name = track.displayName, start = start, anchor = origin,
+                end = double.PositiveInfinity, loop = true, gain = grooveVolume * track.volume,
+                sampleOffset = (int)Math.Round(offset * track.clip.frequency),
+                fadeInStart = start, fadeInEnd = start + 4 * BarTime };
+            jobs.Add(currentGroove);
+        }
+
+        // Resume at the current musical position after an editor or device hitch.
+        private void RecoverDrums(double now)
+        {
+            if (!drumsEnabled || drums == null || drumIndex < 0 || drumIndex >= drums.Length ||
+                !CheckLoop(drums[drumIndex], MusicCategory.Drums)) return;
+            double start = now + 0.2;
+            int next = Math.Max(4, ((int)Math.Floor((start - origin) / (4 * BlockTime)) + 1) * 4);
+            double end = At(next);
+            Voice voice = Reserve(MusicCategory.Drums, start, end);
+            if (voice == null) return;
+            LoopTrack track = drums[drumIndex];
+            double length = Duration(track.clip);
+            double offset = ((start - origin) % length + length) % length;
+            jobs.Add(new Job { category = MusicCategory.Drums, voice = voice, clip = track.clip,
+                name = track.displayName, block = next - 4, start = start, anchor = origin,
+                end = end, loop = true, gain = drumVolume * track.volume,
+                sampleOffset = (int)Math.Round(offset * track.clip.frequency) });
+            nextDrumBlock = next;
+            status = "Recovering drums on the music grid";
         }
 
         private void MaintainDrums(double now)
@@ -1889,9 +2131,6 @@ namespace BeastBrawl.Music
             double now
         )
         {
-            if (job.category != MusicCategory.Groove)
-                return 1f;
-
             if (!double.IsNaN(job.fadeOutStart) &&
                 now >= job.fadeOutStart)
             {
@@ -1970,7 +2209,7 @@ namespace BeastBrawl.Music
                     "MISSED DSP DEADLINE: " +
                     job.name;
 
-                Debug.LogError(status, this);
+                Debug.LogWarning(status + "; attempting recovery", this);
                 return;
             }
 
@@ -2001,10 +2240,10 @@ namespace BeastBrawl.Music
             source.panStereo =
                 job.side * sidePan;
 
-            source.volume = job.gain;
-            source.timeSamples = 0;
+            source.volume = double.IsNaN(job.fadeInStart) ? job.gain : 0f;
+            source.timeSamples = Mathf.Clamp(job.sampleOffset, 0, job.clip.samples - 1);
 
-            if (job.category == MusicCategory.Groove)
+            if (job.category == MusicCategory.Groove && job.prerollBars > 0)
             {
                 int preroll =
                     (int)Math.Round(
@@ -2043,9 +2282,13 @@ namespace BeastBrawl.Music
             MaintainDrums(now);
             AutomaticGrooveCheck(now);
 
+            bool missedDrums = false;
+            bool missedGroove = false;
             foreach (Job job in jobs)
             {
                 Commit(job, now);
+                if (job.failed && job.category == MusicCategory.Drums) missedDrums = true;
+                if (job.failed && job.category == MusicCategory.Groove) missedGroove = true;
             }
 
             foreach (Job job in jobs)
@@ -2059,13 +2302,7 @@ namespace BeastBrawl.Music
                     continue;
                 }
 
-                if (job.category ==
-                    MusicCategory.Groove)
-                {
-                    job.voice.source.volume =
-                        job.gain *
-                        Envelope(job, now);
-                }
+                job.voice.source.volume = job.gain * Envelope(job, now);
 
                 if (job.category ==
                     MusicCategory.SoloLead)
@@ -2113,6 +2350,20 @@ namespace BeastBrawl.Music
 
                 jobs.RemoveAt(i);
             }
+            if (missedDrums) RecoverDrums(now);
+            if (drumsEnabled && now >= origin)
+            {
+                bool drumImminent = false;
+                foreach (Job job in jobs)
+                    if (Valid(job) && job.category == MusicCategory.Drums &&
+                        job.start <= now + 0.5 && job.end > now) { drumImminent = true; break; }
+                if (!drumImminent) RecoverDrums(now);
+            }
+            if (missedGroove && CurrentGrooveJob() == null &&
+                !AnyLeadBetween(now, now + 0.25) && !SoloConflict(now, now + 0.25))
+            {
+                RecoverGroove(RandomGroove(), now);
+            }
         }
 
         public void ClearPending(
@@ -2152,8 +2403,8 @@ namespace BeastBrawl.Music
                 if (Valid(jobs[i]) &&
                     jobs[i].character ==
                         characterId &&
-                    jobs[i].start >
-                        now + ScheduleLead)
+                    (jobs[i].category == MusicCategory.Riff || jobs[i].category == MusicCategory.Lead) &&
+                    jobs[i].start > now)
                 {
                     Cancel(jobs[i]);
                 }
@@ -2162,6 +2413,39 @@ namespace BeastBrawl.Music
             status =
                 "Cleared future " +
                 CharacterName(characterId);
+        }
+
+        /// <summary>Whether a lead is actually audible now (queued leads do not count).</summary>
+        public bool IsLeadPlaying => initialized && HasCategory(MusicCategory.Lead, AudioSettings.dspTime);
+
+        /// <summary>Fade the current mix promptly, keep drums, then let automatic groove return.</summary>
+        public void FadeToDrums(float fadeSeconds, int drumSoloBars)
+        {
+            if (!initialized) return;
+            double now = AudioSettings.dspTime;
+            double end = now + Math.Max(0.05, fadeSeconds);
+            foreach (Job job in jobs)
+            {
+                if (!Valid(job) || job.category == MusicCategory.Drums) continue;
+                if (job.start > now)
+                {
+                    Cancel(job);
+                    continue;
+                }
+                if (job.end <= now) continue;
+                job.fadeOutStart = now;
+                job.fadeOutEnd = end;
+                job.end = Math.Min(job.end, end);
+                if (job.committed && job.voice.current == job)
+                    job.voice.source.SetScheduledEndTime(job.end);
+            }
+            currentGroove = null;
+            pendingAutoGroove = null;
+            // Hold the groove back for a clear drum-only passage.
+            manualGrooveExitUntil = end + Math.Max(0, drumSoloBars) * BarTime;
+            featureNextBlock[MusicCategory.Riff] = 0;
+            featureNextBlock[MusicCategory.Lead] = 0;
+            status = "Fading to drums; automatic groove will return";
         }
 
         public void StopAllMusic()
@@ -2257,38 +2541,18 @@ namespace BeastBrawl.Music
         private string Names(bool upcoming)
         {
             double now = AudioSettings.dspTime;
-
-            List<string> names =
-                new List<string>();
-
+            var matching = new List<Job>();
             foreach (Job job in jobs)
             {
-                if (!Valid(job))
-                    continue;
-
-                bool show = upcoming
-                    ? job.start > now
-                    : job.start <= now &&
-                      now < job.end;
-
-                if (show)
-                {
-                    names.Add(
-                        job.name +
-                        (upcoming
-                            ? " @bar " +
-                              (job.block * 4 + 1)
-                            : "")
-                    );
-                }
+                if (!Valid(job)) continue;
+                if (upcoming ? job.start > now : job.start <= now && now < job.end)
+                    matching.Add(job);
             }
-
-            return names.Count == 0
-                ? "None"
-                : string.Join(
-                    " | ",
-                    names.ToArray()
-                );
+            matching.Sort((a, b) => a.start.CompareTo(b.start));
+            var names = new List<string>();
+            foreach (Job job in matching)
+                names.Add(job.name + (upcoming ? " @bar " + (job.block * 4 + 1) : ""));
+            return names.Count == 0 ? "None" : string.Join(" | ", names.ToArray());
         }
 
         private int CountTracks(

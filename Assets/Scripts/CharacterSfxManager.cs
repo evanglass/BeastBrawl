@@ -1,16 +1,21 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>Plays character effects locally using positions in this instance's camera.</summary>
 public class CharacterSfxManager : MonoBehaviour
 {
-    public enum Effect { Attack, Jump, Hit, Land }
+    public enum Effect { Attack, Jump, Hit, Land, BeastActivation, BeastAttack }
 
     [Serializable]
     public class SoundEffect
     {
         public AudioClip clip;
         [Range(0f, 1f)] public float volume = 1f;
+        [Range(0.1f, 3f)] public float pitch = 1f;
+        [Range(0f, 2f)] public float gain = 1f;
+        [Range(0f, 1f)] public float bitCrush = 0f;
+        [Min(0f)] public float startSeconds;
     }
 
     [Serializable]
@@ -27,6 +32,8 @@ public class CharacterSfxManager : MonoBehaviour
         public SoundEffect jump = new SoundEffect();
         public SoundEffect hit = new SoundEffect();
         public SoundEffect land = new SoundEffect();
+        public SoundEffect beastActivation = new SoundEffect();
+        public SoundEffect beastAttack = new SoundEffect();
         public NamedSoundEffect[] otherEffects = Array.Empty<NamedSoundEffect>();
 
         public SoundEffect Get(Effect effect)
@@ -37,6 +44,8 @@ public class CharacterSfxManager : MonoBehaviour
                 case Effect.Jump: return jump;
                 case Effect.Hit: return hit;
                 case Effect.Land: return land;
+                case Effect.BeastActivation: return beastActivation;
+                case Effect.BeastAttack: return beastAttack;
                 default: return null;
             }
         }
@@ -61,11 +70,24 @@ public class CharacterSfxManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning("Only one Character SFX Manager should be active in a scene.", this);
-            enabled = false;
+            Destroy(gameObject);
             return;
         }
         Instance = this;
+        transform.SetParent(null);
+        DontDestroyOnLoad(gameObject);
+    }
+
+    public static CharacterSfxManager GetOrCreate()
+    {
+        if (Instance != null) return Instance;
+        var prefab = Resources.Load<GameObject>("CharacterSfxManager");
+        if (prefab == null)
+        {
+            Debug.LogError("Character SFX Manager prefab is missing from Resources.");
+            return null;
+        }
+        return Instantiate(prefab).GetComponent<CharacterSfxManager>();
     }
 
     private void OnDestroy()
@@ -77,6 +99,22 @@ public class CharacterSfxManager : MonoBehaviour
     {
         CharacterSounds sounds = GetCharacterSounds(character);
         if (sounds != null) PlaySound(sounds.Get(effect), worldPosition);
+    }
+
+    // Cougar and Snake have a single transformation-to-special sequence per activation.
+    public void PlayBeastActivation(PlayerVisual.Character character, Transform fighter)
+    {
+        CharacterSounds sounds = GetCharacterSounds(character);
+        if (sounds == null || fighter == null) return;
+        float duration = PlaySound(sounds.beastActivation, fighter.position);
+        if (character == PlayerVisual.Character.Cougar || character == PlayerVisual.Character.Snake)
+            StartCoroutine(PlayFollowingSound(sounds.beastAttack, fighter, duration));
+    }
+
+    private IEnumerator PlayFollowingSound(SoundEffect sound, Transform fighter, float delay)
+    {
+        if (delay > 0f) yield return new WaitForSecondsRealtime(delay);
+        if (fighter != null) PlaySound(sound, fighter.position);
     }
 
     /// <summary>Call when a future character-specific gameplay event occurs.</summary>
@@ -106,9 +144,9 @@ public class CharacterSfxManager : MonoBehaviour
         }
     }
 
-    private void PlaySound(SoundEffect sound, Vector3 worldPosition)
+    private float PlaySound(SoundEffect sound, Vector3 worldPosition)
     {
-        if (sound == null || sound.clip == null || sound.volume <= 0f || masterVolume <= 0f) return;
+        if (sound == null || sound.clip == null || sound.volume <= 0f || masterVolume <= 0f) return 0f;
         Camera camera = viewCamera != null ? viewCamera : Camera.main;
         Vector3 viewport = camera != null ? camera.WorldToViewportPoint(worldPosition) : new Vector3(0.5f, 0.5f, 0f);
         float pan = Mathf.Clamp(viewport.x * 2f - 1f, -1f, 1f) * stereoWidth;
@@ -119,10 +157,38 @@ public class CharacterSfxManager : MonoBehaviour
         source.playOnAwake = false;
         source.spatialBlend = 0f;
         source.panStereo = pan;
-        source.pitch = 1f + height * heightPitchVariation;
+        source.pitch = Mathf.Clamp(sound.pitch * (1f + height * heightPitchVariation), 0.1f, 3f);
         source.volume = Mathf.Clamp01(sound.volume) * masterVolume;
         source.clip = sound.clip;
+        float offset = Mathf.Clamp(sound.startSeconds, 0f, Mathf.Max(0f, sound.clip.length - 1f / sound.clip.frequency));
+        source.timeSamples = Mathf.Clamp(Mathf.RoundToInt(offset * sound.clip.frequency), 0, sound.clip.samples - 1);
+        if (sound.bitCrush > 0f || sound.gain > 1f)
+        {
+            var filter = voice.AddComponent<CharacterSfxFilter>();
+            filter.gain = sound.gain;
+            filter.bitCrush = sound.bitCrush;
+        }
+        else source.volume *= Mathf.Clamp01(sound.gain);
         source.Play();
-        Destroy(voice, sound.clip.length / source.pitch + 0.1f);
+        float duration = (sound.clip.length - offset) / source.pitch;
+        Destroy(voice, duration + 0.1f);
+        return duration;
+    }
+}
+
+// Applied only to the requested voices; the original audio assets remain untouched.
+public sealed class CharacterSfxFilter : MonoBehaviour
+{
+    public float gain = 1f;
+    public float bitCrush;
+
+    private void OnAudioFilterRead(float[] data, int channels)
+    {
+        for (int i = 0; i < data.Length; i++)
+        {
+            float sample = data[i] * gain;
+            float crushed = Mathf.Round(sample * 64f) / 64f;
+            data[i] = Mathf.Clamp(Mathf.Lerp(sample, crushed, bitCrush), -1f, 1f);
+        }
     }
 }

@@ -1,6 +1,6 @@
 # Freesound options
 
-All selected sounds were marked Creative Commons 0 on Freesound when selected. Check each source page and license again before release. Some recordings contain multiple sounds or may need trimming.
+Check each source page and license before release; the sounds do not all share the same license. Creator descriptions and licenses do not by themselves prove whether AI was used. Some recordings contain multiple sounds or may need trimming.
 
 ## Eagle
 
@@ -15,12 +15,16 @@ All selected sounds were marked Creative Commons 0 on Freesound when selected. C
 - 877979__qvantor__whoosh-flutter-wings.wav — https://freesound.org/s/877979/
 
 ### Hit
-- 697363__grayepic__eagle-s.mp3 — https://freesound.org/s/697363/
 - 875521__loganzsound__macaw-screech.wav — https://freesound.org/s/875521/
 
 ### Land
 - 405552__raclure__flapping-wings-of-a-bird.wav — https://freesound.org/s/405552/
+
+### Transformation
 - 499679__hope-sounds__birds-taking-off-fly.mp3 — https://freesound.org/s/499679/
+
+### Special Attack
+- 697363__grayepic__eagle-s.mp3 — https://freesound.org/s/697363/
 
 ## Bear
 
@@ -44,11 +48,16 @@ All selected sounds were marked Creative Commons 0 on Freesound when selected. C
 - 669714__vestibule-door__single-big-impact-large-creature-jumping-down.wav — https://freesound.org/s/669714/
 - 866957__justwatson64__feetmisc-squish-heavy-footsteps.wav — https://freesound.org/s/866957/
 
+### Transformation (user supplied; license not yet checked)
+- 728102__piddipop__synthetic-bear-growl-2.wav — https://freesound.org/s/728102/
+
+### Special Attack (user supplied; license not yet checked)
+- 77637__lendrick__growl6.wav — https://freesound.org/s/77637/
+
 ## Cougar
 
 ### Attack
 - 683101__florianreichelt__quick-woosh.mp3 — https://freesound.org/s/683101/
-- 786323__sadiquecat__kung-fu-punch-sfx-a-b-edited.wav — https://freesound.org/s/786323/
 - 9509__petenice__whoosh.wav — https://freesound.org/s/9509/
 
 ### Jump
@@ -66,9 +75,18 @@ All selected sounds were marked Creative Commons 0 on Freesound when selected. C
 - 340983__soundsaregr8__footstep-on-wood.wav — https://freesound.org/s/340983/
 - 421153__giocosound__footstep_wood_toe_1.wav — https://freesound.org/s/421153/
 
+### Transformation
+- 786323__sadiquecat__kung-fu-punch-sfx-a-b-edited.wav — https://freesound.org/s/786323/
+
+- 495693__christyboy100__cat-growl.m4a (converted to WAV for Unity) — https://freesound.org/s/495693/ — Creative Commons Attribution 3.0; credit required.
+
+### Special Attack (user supplied; license not yet checked)
+- 656619__kinoton__angry-cat.wav — https://freesound.org/s/656619/
+
 ## Snake
 
 ### Attack
+-  for .wav — https://freesound.org/s/ for .wav/
 - 241562__reitanna__hiss.wav — https://freesound.org/s/241562/
 - 343927__reitanna__hiss2.wav — https://freesound.org/s/343927/
 
@@ -83,3 +101,9 @@ All selected sounds were marked Creative Commons 0 on Freesound when selected. C
 ### Land
 - 653910__krokulator__soft-hit.wav — https://freesound.org/s/653910/
 - 872227__koimematsuchiya__soft-impact-pillow-hit.wav — https://freesound.org/s/872227/
+
+### Transformation (user supplied; license not yet checked)
+- 273904__beskhu__sort-of-rattle-stable-2.wav — https://freesound.org/s/273904/
+
+### Special Attack (user supplied; license not yet checked)
+- 737232__qubodup__short-water-squish.wav — https://freesound.org/s/737232/

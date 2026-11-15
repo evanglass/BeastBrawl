@@ -68,8 +68,11 @@ public class PlayerVisual : NetworkBehaviour
 
     private void PlayLocalEffect(CharacterSfxManager.Effect effect)
     {
-        if (CharacterSfxManager.Instance != null)
-            CharacterSfxManager.Instance.Play(PlayerCharacter, effect, transform.position);
+        var sounds = CharacterSfxManager.GetOrCreate();
+        if (sounds == null) return;
+        if (effect == CharacterSfxManager.Effect.BeastActivation)
+            sounds.PlayBeastActivation(PlayerCharacter, transform);
+        else sounds.Play(PlayerCharacter, effect, transform.position);
     }
 
     [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
@@ -77,6 +80,12 @@ public class PlayerVisual : NetworkBehaviour
     {
         animator.SetTrigger("Punch");
         PlayLocalEffect(CharacterSfxManager.Effect.Attack);
+    }
+
+    [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
+    public void PlayBeastPunchRpc()
+    {
+        animator.SetTrigger("Punch");
     }
 
     public void AssignCharacter(int characterIndex)
