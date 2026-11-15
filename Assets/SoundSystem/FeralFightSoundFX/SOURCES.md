@@ -35,6 +35,8 @@ Check each source page and license before release; the sounds do not all share t
 
 ### Jump
 - 507730__keskaowl__effortnoise.wav — https://freesound.org/s/507730/
+  - `507730__keskaowl__effortnoise_3x_timestretch.wav` is a three-times-faster, pitch-preserving edit; playback starts at the equivalent of 0.2 seconds into the original and retains the pitch drop and bit-crush.
+  - `507730__keskaowl__effortnoise_6x_timestretch.wav` is a six-times-faster, pitch-preserving edit of this recording; playback adds the existing pitch drop and bit-crush.
 - 661242__deqsterslab__swing-grunt.mp3 — https://freesound.org/s/661242/
 - 680135__deqsterslab__grunting-effort-pushing-something.wav — https://freesound.org/s/680135/
 

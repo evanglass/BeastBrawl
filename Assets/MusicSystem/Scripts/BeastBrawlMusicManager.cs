@@ -113,6 +113,14 @@ namespace BeastBrawl.Music
         [Min(1)]
         public int globalBpm = 100;
 
+        [Tooltip("Overall music level, from 0% to 400%.")]
+        [SoundPercent(400f)]
+        public float masterVolume = 1f;
+
+        public float MasterVolume => Mathf.Clamp(masterVolume, 0f, 4f);
+
+        public void SetMasterVolume(float value) => masterVolume = Mathf.Clamp(value, 0f, 4f);
+
         [Range(0f, 1f)]
         public float drumVolume = 0.8f;
 
@@ -154,6 +162,7 @@ namespace BeastBrawl.Music
         private sealed class Voice
         {
             public AudioSource source;
+            public MusicMasterGain masterGain;
             public Job current;
         }
 
@@ -372,6 +381,8 @@ namespace BeastBrawl.Music
 
                 AudioSource source =
                     child.AddComponent<AudioSource>();
+                MusicMasterGain gain = child.AddComponent<MusicMasterGain>();
+                gain.gain = MasterVolume;
 
                 source.playOnAwake = false;
                 source.spatialBlend = 0f;
@@ -379,7 +390,8 @@ namespace BeastBrawl.Music
 
                 voices[i] = new Voice
                 {
-                    source = source
+                    source = source,
+                    masterGain = gain
                 };
             }
 
@@ -2277,6 +2289,10 @@ namespace BeastBrawl.Music
             if (!initialized)
                 return;
 
+            foreach (Voice[] voices in pools.Values)
+                foreach (Voice voice in voices)
+                    voice.masterGain.gain = MasterVolume;
+
             double now = AudioSettings.dspTime;
 
             MaintainDrums(now);
@@ -2868,6 +2884,18 @@ namespace BeastBrawl.Music
             }
 
             GUILayout.EndArea();
+        }
+    }
+
+    // AudioSource.volume is capped at 100%; this keeps the requested boost local.
+    public sealed class MusicMasterGain : MonoBehaviour
+    {
+        public volatile float gain = 1f;
+        private void OnAudioFilterRead(float[] data, int channels)
+        {
+            float level = gain;
+            for (int i = 0; i < data.Length; i++)
+                data[i] *= level;
         }
     }
 }

@@ -1,6 +1,6 @@
 # Character sound origin audit
 
-Reviewed 2026-11-15. This inventories 49 audio files in the character sound-effects folder; 23 are assigned in the shared manager. A creator's description is useful evidence, not independent proof that no AI was used. “Not established” includes sources with incomplete descriptions or pages that could not be retrieved. No sound has been removed or replaced as part of this audit.
+Reviewed 2026-11-15. This inventories 51 audio files in the character sound-effects folder; 23 are assigned in the shared manager. A creator's description is useful evidence, not independent proof that no AI was used. “Not established” includes sources with incomplete descriptions or pages that could not be retrieved. No sound has been removed or replaced as part of this audit.
 
 | File | Currently assigned | Source and production notes |
 | --- | --- | --- |
@@ -10,7 +10,9 @@ Reviewed 2026-11-15. This inventories 49 audio files in the character sound-effe
 | Bear/Hit/162370__lewisisminted__punch-1.mp3 | No | [Freesound 162370](https://freesound.org/people/lewisisminted/sounds/162370/) — Non-AI origin not established from available information. |
 | Bear/Hit/490769__steveuk87__punch-2-heavy.ogg | Yes | [Freesound 490769](https://freesound.org/people/steveuk87/sounds/490769/) — Uploader says the sound was made by punching their chest. |
 | Bear/Hit/879268__qvantor__heavy-slam-impact.wav | No | [Freesound 879268](https://freesound.org/people/qvantor/sounds/879268/) — Non-AI origin not established from available information. |
-| Bear/Jump/507730__keskaowl__effortnoise.wav | Yes | [Freesound 507730](https://freesound.org/people/keskaowl/sounds/507730/) — Non-AI origin not established from available information. |
+| Bear/Jump/507730__keskaowl__effortnoise.wav | No | [Freesound 507730](https://freesound.org/people/keskaowl/sounds/507730/) — Non-AI origin not established from available information. |
+| Bear/Jump/507730__keskaowl__effortnoise_3x_timestretch.wav | Yes | Three-times-faster, pitch-preserving edit of Freesound 507730; original non-AI origin not established. |
+| Bear/Jump/507730__keskaowl__effortnoise_6x_timestretch.wav | No | Six-times-faster, pitch-preserving edit of Freesound 507730; original non-AI origin not established. |
 | Bear/Jump/661242__deqsterslab__swing-grunt.mp3 | No | [Freesound 661242](https://freesound.org/people/deqsterslab/sounds/661242/) — Non-AI origin not established from available information. |
 | Bear/Jump/680135__deqsterslab__grunting-effort-pushing-something.wav | No | [Freesound 680135](https://freesound.org/people/deqsterslab/sounds/680135/) — Non-AI origin not established from available information. |
 | Bear/Land/464527__pcmac__jump.wav | No | [Freesound 464527](https://freesound.org/people/pcmac/sounds/464527/) — Uploader describes recording their own jump and landing. |

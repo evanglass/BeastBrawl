@@ -91,19 +91,23 @@ public class EagleVisual : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
     public void PlayBoomRpc(Vector2 origin, float angle)
     {
+        float lifetime = soundWave != null ? Mathf.Max(0.01f, soundWave.main.startLifetime.constantMax) : .5f;
+        float radians = angle * Mathf.Deg2Rad;
+        Vector3 velocity = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f) * (eagle.BoomRange / lifetime);
+        var sounds = CharacterSfxManager.GetOrCreate();
+        if (sounds != null) sounds.PlayMoving(PlayerVisual.Character.Eagle, CharacterSfxManager.Effect.BeastAttack, origin, velocity, lifetime);
         if (soundWave == null)
             return;
 
         soundWave.transform.position = origin;
         soundWave.Play();
-        float lifetime = Mathf.Max(0.01f, soundWave.main.startLifetime.constantMax);
         for (int i = 0; i < 41; i++)
         {
             float direction = Mathf.Lerp(angle - eagle.BoomHalfAngle, angle + eagle.BoomHalfAngle, i / 40f);
-            float radians = direction * Mathf.Deg2Rad;
+            float particleRadians = direction * Mathf.Deg2Rad;
             ParticleSystem.EmitParams particle = new ParticleSystem.EmitParams();
             particle.position = origin;
-            particle.velocity = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f) * (eagle.BoomRange / lifetime);
+            particle.velocity = new Vector3(Mathf.Cos(particleRadians), Mathf.Sin(particleRadians), 0f) * (eagle.BoomRange / lifetime);
             soundWave.Emit(particle, 1);
         }
     }
