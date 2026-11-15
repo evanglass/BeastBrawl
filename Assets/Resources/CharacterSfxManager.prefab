@@ -52,7 +52,7 @@ MonoBehaviour:
       gain: 6
       bitCrush: 0
     jump:
-      clip: {fileID: 8300000, guid: ddc7c69f8fcf549e7a83638c1b7becf4, type: 3}
+      clip: {fileID: 8300000, guid: 1bd95dd99c06449eab2d2bdd75fb637c, type: 3}
       volume: 1
       pitch: 1
       gain: 4

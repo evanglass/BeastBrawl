@@ -11,7 +11,7 @@ Check each source page and license before release; the sounds do not all share t
 
 ### Jump
 - 330967__deleted_user_2104797__bird-flap-b-05.wav — https://freesound.org/s/330967/
-- 561009__turbofool__light-wing-flap.wav — https://freesound.org/s/561009/
+- 389633__stubb__wing-flap-2.wav — https://freesound.org/s/389633/
 - 877979__qvantor__whoosh-flutter-wings.wav — https://freesound.org/s/877979/
 
 ### Hit

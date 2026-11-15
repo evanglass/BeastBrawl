@@ -39,7 +39,7 @@ Reviewed 2026-11-15. This inventories 51 audio files in the character sound-effe
 | Eagle/Attack/877979__qvantor__whoosh-flutter-wings.wav | No | [Freesound 877979](https://freesound.org/people/qvantor/sounds/877979/) — Non-AI origin not established from available information. |
 | Eagle/Hit/875521__loganzsound__macaw-screech.wav | No | [Freesound 875521](https://freesound.org/people/loganzsound/sounds/875521/) — Non-AI origin not established from available information. |
 | Eagle/Jump/330967__deleted_user_2104797__bird-flap-b-05.wav | No | [Freesound 330967](https://freesound.org/people/deleted_user_2104797/sounds/330967/) — Uploader describes recording a tea towel. |
-| Eagle/Jump/561009__turbofool__light-wing-flap.wav | Yes | [Freesound 561009](https://freesound.org/people/turbofool/sounds/561009/) — Uploader describes recording thick paper. |
+| Eagle/Jump/389633__stubb__wing-flap-2.wav | Yes | [Freesound 389633](https://freesound.org/s/389633/) — Non-AI origin not established from available information. |
 | Eagle/Jump/877979__qvantor__whoosh-flutter-wings.wav | No | [Freesound 877979](https://freesound.org/people/qvantor/sounds/877979/) — Non-AI origin not established from available information. |
 | Eagle/Land/405552__raclure__flapping-wings-of-a-bird.wav | Yes | [Freesound 405552](https://freesound.org/people/raclure/sounds/405552/) — Non-AI origin not established from available information. |
 | Eagle/Special Attack/697363__grayepic__eagle-s.mp3 | Yes | [Freesound 697363](https://freesound.org/people/grayepic/sounds/697363/) — Non-AI origin not established from available information. |
