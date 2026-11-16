@@ -37,6 +37,19 @@ public class PlayerPunch : NetworkBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
+    public override void OnNetworkSpawn()
+    {
+        if (!IsServer || punchArea is not BoxCollider2D box)
+            return;
+
+        float reach = Mathf.Max(0.01f, GameGlobals.Instance.punchReach);
+        box.size = new Vector2(reach, box.size.y);
+        box.offset = new Vector2(0f, box.offset.y);
+        Vector3 position = box.transform.localPosition;
+        position.x = reach * 0.5f;
+        box.transform.localPosition = position;
+    }
+
     private void Update()
     {
         if (!IsClient || !IsOwner || !IsSpawned || !playerInput.enabled)
@@ -103,6 +116,7 @@ public class PlayerPunch : NetworkBehaviour
         filter.useTriggers = false;
 
         Collider2D activeArea = playerBeast.AttackArea != null ? playerBeast.AttackArea : punchArea;
+        Physics2D.SyncTransforms();
         int hitCount = activeArea.Overlap(filter, hits);
 
         for (int i = 0; i < hitCount; i++)

@@ -11,6 +11,7 @@
   "maxJumps": 2,
   "punchDamage": 20,
   "punchCooldown": 0.2,
+  "punchReach": 1,
   "punchKnockback": { "x": 20, "y": 10 },
   "beastMeterGainRate": 2,
   "beastMeterGainPerHit": 15,
