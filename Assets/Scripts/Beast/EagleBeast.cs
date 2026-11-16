@@ -3,21 +3,6 @@ using UnityEngine;
 
 public class EagleBeast : Beast
 {
-    [SerializeField]
-    private float cornerSpeed = 15f;
-
-    [SerializeField]
-    private float aimSpeed = 90f;
-
-    [SerializeField]
-    private float boomKnockback = 30f;
-
-    [SerializeField]
-    private float flightSpeed = 10f;
-
-    [SerializeField]
-    private float flightDuration = 2f;
-
     private Rigidbody2D rb;
     private PlayerState playerState;
     private PlayerBeast playerBeast;
@@ -80,7 +65,7 @@ public class EagleBeast : Beast
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.zero;
         aimTimer = GameGlobals.Instance.beastDuration;
-        cornerTravelTimer = Mathf.Max(3f, Vector2.Distance(rb.position, corner) / Mathf.Max(1f, cornerSpeed) * 2f + 1f);
+        cornerTravelTimer = Mathf.Max(3f, Vector2.Distance(rb.position, corner) / Mathf.Max(1f, GameGlobals.Instance.eagleCornerSpeed) * 2f + 1f);
         phase = EagleVisual.Phase.FlyingToCorner;
         visual.SetAim(phase, aimAngle);
     }
@@ -109,7 +94,7 @@ public class EagleBeast : Beast
             bool isFarAway = Mathf.Abs(rb.position.y - corner.y) > 0.05f;
             Vector2 destination = isFarAway ? new Vector2(rb.position.x, corner.y) : corner;
 
-            Vector2 next = Vector2.MoveTowards(rb.position, destination, cornerSpeed * deltaTime);
+            Vector2 next = Vector2.MoveTowards(rb.position, destination, GameGlobals.Instance.eagleCornerSpeed * deltaTime);
             rb.linearVelocity = Vector2.zero;
             rb.MovePosition(next);
 
@@ -122,12 +107,12 @@ public class EagleBeast : Beast
         else if (phase == EagleVisual.Phase.Aiming)
         {
             rb.linearVelocity = Vector2.zero;
-            aimAngle = Mathf.Clamp(aimAngle + bridge.MoveHorizontal * aimSpeed * deltaTime, -150f, -30f);
+            aimAngle = Mathf.Clamp(aimAngle + bridge.MoveHorizontal * GameGlobals.Instance.eagleAimSpeed * deltaTime, -150f, -30f);
             visual.SetAim(phase, aimAngle);
         }
         else if (phase == EagleVisual.Phase.FreeFlight)
         {
-            rb.linearVelocity = new Vector2(bridge.MoveHorizontal * flightSpeed, 0f);
+            rb.linearVelocity = new Vector2(bridge.MoveHorizontal * GameGlobals.Instance.eagleFlightSpeed, 0f);
             
             flightTimer -= deltaTime;
             if (flightTimer <= 0f)
@@ -158,7 +143,7 @@ public class EagleBeast : Beast
                 continue;
 
             if (Vector2.Dot(direction, offset.normalized) >= minDot)
-                target.AddForce(Vector2.right * boomDirection * boomKnockback, ForceMode2D.Impulse);
+                target.AddForce(Vector2.right * boomDirection * GameGlobals.Instance.eagleBoomKnockback, ForceMode2D.Impulse);
         }
 
         visual.PlayBoomRpc(rb.position, aimAngle);
@@ -168,7 +153,7 @@ public class EagleBeast : Beast
     private void StartFreeFlight()
     {
         phase = EagleVisual.Phase.FreeFlight;
-        flightTimer = flightDuration;
+        flightTimer = GameGlobals.Instance.eagleFlightDuration;
         visual.SetAim(phase, aimAngle);
     }
 

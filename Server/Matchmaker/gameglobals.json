@@ -16,5 +16,15 @@
   "beastMeterGainPerHit": 15,
   "beastDuration": 5,
   "eagleBoomRange": 35,
-  "eagleBoomHalfAngle": 15
+  "eagleBoomHalfAngle": 15,
+  "eagleCornerSpeed": 15,
+  "eagleAimSpeed": 90,
+  "eagleBoomKnockback": 30,
+  "eagleFlightSpeed": 10,
+  "eagleFlightDuration": 2,
+  "bearMoveSpeedMultiplier": 0.5,
+  "bearPunchDamageMultiplier": 3,
+  "cougarMoveSpeedMultiplier": 3,
+  "cougarPunchCooldownMultiplier": 0.1,
+  "snakeBiteDelay": 1.5
 }

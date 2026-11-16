@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class SnakeBeast : Beast
 {
-    [SerializeField]
-    private float biteDelay = 1.5f;
-
     private PlayerState targetState;
     private Rigidbody2D rb;
     private PlayerState playerState;
@@ -59,7 +56,7 @@ public class SnakeBeast : Beast
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.zero;
         GetComponent<NetworkTransform>().Teleport(targetState.transform.position, transform.rotation, transform.localScale);
-        biteTimer = biteDelay;
+        biteTimer = GameGlobals.Instance.snakeBiteDelay;
     }
 
     public override void TickBeast(float deltaTime)

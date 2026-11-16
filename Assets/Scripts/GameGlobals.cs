@@ -29,6 +29,22 @@ public class GameGlobals : MonoBehaviour
     [Header("Eagle")]
     public float eagleBoomRange = 35f;
     public float eagleBoomHalfAngle = 15f;
+    public float eagleCornerSpeed = 15f;
+    public float eagleAimSpeed = 90f;
+    public float eagleBoomKnockback = 30f;
+    public float eagleFlightSpeed = 10f;
+    public float eagleFlightDuration = 2f;
+
+    [Header("Bear")]
+    public float bearMoveSpeedMultiplier = 0.5f;
+    public float bearPunchDamageMultiplier = 3f;
+
+    [Header("Cougar")]
+    public float cougarMoveSpeedMultiplier = 3f;
+    public float cougarPunchCooldownMultiplier = 0.1f;
+
+    [Header("Snake")]
+    public float snakeBiteDelay = 1.5f;
 
     public static GameGlobals Instance { get; private set; }
 
