@@ -9,6 +9,7 @@ public class PlayerVisual : NetworkBehaviour
     private Rigidbody2D rb;
     private EagleVisual eagleVisual;
     private MatchManager matchManager;
+    private float snakeBeastClipLength = 0.5f;
 
     [SerializeField]
     private RectTransform beastMeterFill;
@@ -43,6 +44,15 @@ public class PlayerVisual : NetworkBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
+        {
+            if (clip.name == "Snake_Beast")
+            {
+                snakeBeastClipLength = clip.length;
+                break;
+            }
+        }
     }
 
     private void Update()
@@ -62,6 +72,7 @@ public class PlayerVisual : NetworkBehaviour
         animator.SetBool("Walking", Walking);
         animator.SetBool("Conscious", Conscious);
         animator.SetBool("Beast", bridge.IsBeast);
+        animator.SetFloat("SnakeBeastSpeed", snakeBeastClipLength / Mathf.Max(bridge.SnakeBiteDelay, 0.02f));
         if (bridge.IsBeast && PlayerCharacter != Character.Bear) animator.ResetTrigger("Punch");
         animator.SetInteger("Character", (int)PlayerCharacter);
         animator.SetInteger("Facing", Facing);

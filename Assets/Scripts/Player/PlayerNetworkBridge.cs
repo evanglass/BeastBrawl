@@ -46,6 +46,12 @@ public class PlayerNetworkBridge : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    private NetworkVariable<float> snakeBiteDelay = new(
+        1.5f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     public float MoveHorizontal { get; private set; }
     public bool Jump { get; private set; }
     public bool Punch { get; private set; }
@@ -57,6 +63,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
     public bool Walking => walking.Value;
     public float BeastMeter => beastMeter.Value;
     public bool IsBeast => isBeast.Value;
+    public float SnakeBiteDelay => snakeBiteDelay.Value;
     public bool GameplayAllowed => matchManager == null ||
         (matchManager.IsSpawned && matchManager.CurrentPhase == MatchManager.MatchPhase.Fighting);
 
@@ -76,6 +83,7 @@ public class PlayerNetworkBridge : NetworkBehaviour
 
         if (IsServer)
         {
+            snakeBiteDelay.Value = GameGlobals.Instance.snakeBiteDelay;
             Publish();
         }
     }
