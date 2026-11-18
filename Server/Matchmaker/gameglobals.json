@@ -26,7 +26,7 @@
   "unconsciousEagleKnockbackMultiplier": 1,
   "eagleFlightSpeed": 10,
   "eagleFlightDuration": 2,
-  "bearMoveSpeedMultiplier": 0.6,
+  "bearMoveSpeedMultiplier": 0.8,
   "bearPunchDamageMultiplier": 3,
   "cougarMoveSpeedMultiplier": 3,
   "cougarPunchCooldownMultiplier": 0.1,

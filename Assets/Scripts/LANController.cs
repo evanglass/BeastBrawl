@@ -179,6 +179,11 @@ public class LANController : MonoBehaviour
         transport.UseEncryption = true;
         transport.SetClientSecrets(onlineAddress);
         transport.SetConnectionData(onlineAddress, onlinePort);
+#if DEVELOPMENT_BUILD
+        transport.ConnectionData.WebSocketPath = "/feral-test";
+#else
+        transport.ConnectionData.WebSocketPath = "/";
+#endif
         return nm.StartClient();
     }
 
