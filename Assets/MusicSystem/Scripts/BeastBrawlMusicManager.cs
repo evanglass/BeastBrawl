@@ -120,6 +120,15 @@ namespace BeastBrawl.Music
 
         public void SetMasterVolume(float value) => masterVolume = Mathf.Clamp(value, 0f, 4f);
 
+        private float MusicSourceVolume(float volume)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            return Mathf.Clamp01(volume * MasterVolume);
+#else
+            return volume;
+#endif
+        }
+
         [Range(0f, 1f)]
         public float drumVolume = 0.8f;
 
@@ -2250,7 +2259,7 @@ namespace BeastBrawl.Music
             source.panStereo =
                 job.side * sidePan;
 
-            source.volume = double.IsNaN(job.fadeInStart) ? job.gain : 0f;
+            source.volume = MusicSourceVolume(double.IsNaN(job.fadeInStart) ? job.gain : 0f);
             source.timeSamples = Mathf.Clamp(job.sampleOffset, 0, job.clip.samples - 1);
 
             if (job.category == MusicCategory.Groove && job.prerollBars > 0)
@@ -2316,7 +2325,7 @@ namespace BeastBrawl.Music
                     continue;
                 }
 
-                job.voice.source.volume = job.gain * Envelope(job, now);
+                job.voice.source.volume = MusicSourceVolume(job.gain * Envelope(job, now));
 
                 if (job.category ==
                     MusicCategory.SoloLead)

@@ -168,7 +168,11 @@ public sealed class LocalMusicDirector : MonoBehaviour
     {
         if (menuSource != null)
         {
-            menuSource.volume = Mathf.Clamp01(menuMusicVolume * menuFadeLevel);
+            float volume = menuMusicVolume * menuFadeLevel;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            volume *= music != null ? music.MasterVolume : 1f;
+#endif
+            menuSource.volume = Mathf.Clamp01(volume);
             if (menuMasterGain != null) menuMasterGain.gain = music != null ? music.MasterVolume : 1f;
         }
     }

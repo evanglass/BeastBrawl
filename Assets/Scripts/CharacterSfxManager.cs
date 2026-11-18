@@ -79,7 +79,15 @@ public class CharacterSfxManager : MonoBehaviour
         for (int i = activeFilters.Count - 1; i >= 0; i--)
         {
             if (activeFilters[i] == null) activeFilters.RemoveAt(i);
-            else activeFilters[i].masterGain = MasterVolume;
+            else
+            {
+                activeFilters[i].masterGain = MasterVolume;
+#if UNITY_WEBGL && !UNITY_EDITOR
+                AudioSource source = activeFilters[i].GetComponent<AudioSource>();
+                if (source != null)
+                    source.volume = Mathf.Clamp01(activeFilters[i].baseVolume * MasterVolume);
+#endif
+            }
         }
     }
 
@@ -212,8 +220,12 @@ public class CharacterSfxManager : MonoBehaviour
         source.timeSamples = Mathf.Clamp(Mathf.RoundToInt(offset * sound.clip.frequency), 0, sound.clip.samples - 1);
         var filter = voice.AddComponent<CharacterSfxFilter>();
         filter.gain = sound.gain;
+        filter.baseVolume = Mathf.Clamp01(sound.volume);
         filter.bitCrush = sound.bitCrush;
         filter.masterGain = MasterVolume;
+#if UNITY_WEBGL && !UNITY_EDITOR
+        source.volume = Mathf.Clamp01(filter.baseVolume * MasterVolume);
+#endif
         activeFilters.Add(filter);
         source.Play();
         float duration = (sound.clip.length - offset) / source.pitch;
@@ -337,6 +349,7 @@ public sealed class CharacterSoundEffectDrawer : UnityEditor.PropertyDrawer
 public sealed class CharacterSfxFilter : MonoBehaviour
 {
     public float gain = 1f;
+    public float baseVolume = 1f;
     public float bitCrush;
     public volatile float masterGain = 1f;
 

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterSfxManager
   eagle:
     attack:
-      clip: {fileID: 8300000, guid: 0ca6c58624004a80bd5d1fe2ecef8874, type: 3}
+      clip: {fileID: 8300000, guid: 5a390edd69524d2d9423389c472f1685, type: 3}
       volume: 1
       pitch: 1
       gain: 6
@@ -162,7 +162,7 @@ MonoBehaviour:
     otherEffects: []
   snake:
     attack:
-      clip: {fileID: 8300000, guid: af7f0495e79304ad4a66c2282ad7ddab, type: 3}
+      clip: {fileID: 8300000, guid: 4f416d47adbd493893f07df3063f991a, type: 3}
       volume: 1
       pitch: 1.25
       gain: 4

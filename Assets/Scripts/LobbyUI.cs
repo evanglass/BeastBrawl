@@ -91,7 +91,7 @@ public class LobbyUI : MonoBehaviour
         if (!showLobby)
             return;
 
-        panelBackground.color = new Color32(9, 10, 20, overview ? (byte)190 : countdown ? (byte)0 : (byte)255);
+        panelBackground.color = new Color32(255, 255, 255, countdown ? (byte)0 : (byte)255);
         readyButton.gameObject.SetActive(overview);
 
         bool localReady = false;
@@ -104,7 +104,7 @@ public class LobbyUI : MonoBehaviour
 
             if (!occupied)
             {
-                card.background.color = emptyCardColor;
+                card.background.color = card.background.sprite != null ? Color.Lerp(emptyCardColor, Color.white, .65f) : emptyCardColor;
                 card.playerName.text = "Waiting for player";
                 card.characterName.text = "";
                 card.playerNumber.text = "";
@@ -118,7 +118,8 @@ public class LobbyUI : MonoBehaviour
             if (localPlayer)
                 localReady = player.ready;
 
-            card.background.color = localPlayer ? localCardColor : playerCardColor;
+            Color cardColor = localPlayer ? localCardColor : playerCardColor;
+            card.background.color = card.background.sprite != null ? Color.Lerp(cardColor, Color.white, .75f) : cardColor;
             card.playerName.text = player.playerName;
             card.characterName.text = player.character.ToString().ToUpperInvariant();
             card.playerNumber.text = overview

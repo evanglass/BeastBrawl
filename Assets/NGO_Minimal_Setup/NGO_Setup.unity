@@ -5473,7 +5473,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MatchResultsUI
   matchManager: {fileID: 1775518117}
   sceneLoader: {fileID: 2063484513}
-  eventSystem: {fileID: 800102100}
   panel: {fileID: 800103000}
   title: {fileID: 800103013}
   status: {fileID: 800103023}
@@ -5625,6 +5624,8 @@ MonoBehaviour:
   beastMeterGainRate: 2
   beastMeterGainPerHit: 15
   beastDuration: 5
+  eagleBoomRange: 35
+  eagleBoomHalfAngle: 15
 --- !u!4 &995121295
 Transform:
   m_ObjectHideFlags: 0
@@ -6089,7 +6090,7 @@ MonoBehaviour:
   eagleLeftCorner: {fileID: 0}
   eagleRightCorner: {fileID: 0}
   players: []
-  playersPerRound: 4
+  playersPerRound: 1
   roundIntroSeconds: 3
 --- !u!4 &1775518115
 Transform:
@@ -6506,9 +6507,6 @@ MonoBehaviour:
   positionSmoothTime: 0.16
   zoomSmoothTime: 0.2
   minimumSize: 6
-  maximumSize: 10
-  minimumCenter: {x: -8, y: -4}
-  maximumCenter: {x: 8, y: 6}
   horizontalPadding: 2
   verticalPadding: 2
 --- !u!1001 &360258286218151723

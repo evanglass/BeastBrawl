@@ -1,0 +1,42 @@
+FERAL FIGHTERS - SOUND ATTRIBUTIONS
+
+Cat Growl.m4a by Christyboy100, Freesound: https://freesound.org/s/495693/
+Licensed under Creative Commons Attribution 3.0: https://creativecommons.org/licenses/by/3.0/
+The sound was converted from M4A to WAV for the game.
+
+The following sound-effect creators and sources are also credited. Some effects have been edited, converted, level-balanced or time-stretched.
+
+zouzmusic - https://freesound.org/s/414671/ - CC0 1.0
+_stubb - https://freesound.org/s/389633/ - CC0 1.0
+steveuk87 - https://freesound.org/s/490769/ - CC0 1.0
+raclure - https://freesound.org/s/405552/ - CC0 1.0
+hope-sounds - https://freesound.org/s/499679/ - CC0 1.0
+grayepic - https://freesound.org/s/697363/ - CC0 1.0
+bolkmar - https://freesound.org/s/475135/ - CC0 1.0
+keskaowl - https://freesound.org/s/507730/ - license not yet verified
+vestibule-door - https://freesound.org/s/669714/ - CC0 1.0
+piddipop - https://freesound.org/s/728102/ - CC0 1.0
+lendrick - https://freesound.org/s/77637/ - license not yet verified
+florianreichelt - https://freesound.org/s/683101/ - CC0 1.0
+cabled_mess - https://freesound.org/s/350906/ - CC0 1.0
+mrfossy - https://freesound.org/s/547209/ - CC0 1.0
+giocosound - https://freesound.org/s/421153/ - CC0 1.0
+kinoton - https://freesound.org/s/656619/ - CC0 1.0
+reitanna - https://freesound.org/s/241562/ - license not yet verified
+gristi - https://freesound.org/s/562191/ - CC0 1.0
+tonsil5 - https://freesound.org/s/555426/ - CC0 1.0
+krokulator - https://freesound.org/s/653910/ - CC0 1.0
+beskhu - https://freesound.org/s/273904/ - CC0 1.0
+qubodup - https://freesound.org/s/737232/ - CC0 1.0
+
+CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+
+PROJECT AUDIO REVIEW NOTES
+
+The list above covers audio assigned to the 24 character sound slots in Assets/Resources/CharacterSfxManager.prefab (some slots share a source). License checks reflect the source listings available on 2026-11-15. Attribution for CC0 sources is included as a courtesy.
+
+Still to verify before release: Freesound 507730 (keskaowl), 77637 (lendrick), and 241562 (reitanna). Their source pages were not accessible during this review; credit alone does not establish permission. Piddipop's 728102 is listed as CC0 by its uploader but is described as sampling an orc recording by cylon8472; the original sample's rights chain needs verification.
+
+Unassigned candidate sounds and source versions have been archived outside Unity Assets in Archived Sound Effects/FeralFightSoundFX and are not part of Unity builds. Review licenses if any are restored or distributed. One archived file named ' for .wav' has no identified source.
+
+Music files in Assets/MusicSystem/Resources/Music have no author, source, or license documentation located in this review. Confirm ownership or permission and any sample/loop licenses with their creator before public release.
