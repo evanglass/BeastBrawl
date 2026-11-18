@@ -6,6 +6,7 @@ public class GameGlobals : MonoBehaviour
 {
     [Header("Consciousness")]
     public float consciousnessRecoveryRate = 5f;
+    public float consciousnessRecoveryPerPress = 2f;
     public float consciousnessLossMultiplier = 2f;
     public float boundaryY = -10f;
 
@@ -23,6 +24,7 @@ public class GameGlobals : MonoBehaviour
     public float punchCooldown = 1f;
     public float punchReach = 1f;
     public Vector2 punchKnockback = new Vector2(20, 40);
+    public Vector2 unconsciousPunchKnockbackMultiplier = Vector2.one;
     public float beastMeterGainRate = 5f;
     public float beastMeterGainPerHit = 5f;
     public float beastDuration = 5f;
@@ -33,6 +35,7 @@ public class GameGlobals : MonoBehaviour
     public float eagleCornerSpeed = 15f;
     public float eagleAimSpeed = 90f;
     public float eagleBoomKnockback = 30f;
+    public float unconsciousEagleKnockbackMultiplier = 1f;
     public float eagleFlightSpeed = 10f;
     public float eagleFlightDuration = 2f;
 

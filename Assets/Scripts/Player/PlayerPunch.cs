@@ -78,6 +78,13 @@ public class PlayerPunch : NetworkBehaviour
         if (!bridge.GameplayAllowed)
             return;
 
+        if (!playerState.IsConscious && !playerState.Eliminated)
+        {
+            if (wantsPunch)
+                playerState.GainConsciousness(Mathf.Max(0f, GameGlobals.Instance.consciousnessRecoveryPerPress));
+            return;
+        }
+
         if (playerBeast.HandlesAttack)
         {
             if (wantsPunch && playerState.IsConscious && !playerState.Eliminated)
@@ -143,6 +150,8 @@ public class PlayerPunch : NetworkBehaviour
     {
         if (!IsSpawned || !IsServer)
             return;
+
+        bool wasConscious = playerState.IsConscious;
         if (playerState.IsConscious && !playerState.Eliminated)
             GetComponent<PlayerVisual>().PlayEffectRpc(CharacterSfxManager.Effect.Hit);
         playerState.Punch(GameGlobals.Instance.punchDamage * punchDamageMultiplier);
@@ -151,6 +160,9 @@ public class PlayerPunch : NetworkBehaviour
             GameGlobals.Instance.punchKnockback.x * knockbackMultiplier,
             GameGlobals.Instance.punchKnockback.y * knockbackMultiplier
         );
+
+        if (!wasConscious)
+            knockback = Vector2.Scale(knockback, GameGlobals.Instance.unconsciousPunchKnockbackMultiplier);
 
         if (playerMove.OnWall)
         {

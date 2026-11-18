@@ -12,6 +12,7 @@ public class EagleBeast : Beast
     private Vector2 corner;
     private int boomDirection;
     private float originalGravity;
+    private LayerMask originalExcludedLayers;
     private float aimAngle;
     private float aimTimer;
     private float cornerTravelTimer;
@@ -62,6 +63,8 @@ public class EagleBeast : Beast
         boomDirection = -playerMove.Facing;
         aimAngle = playerMove.Facing < 0 ? -45f : -135f;
         originalGravity = rb.gravityScale;
+        originalExcludedLayers = rb.excludeLayers;
+        rb.excludeLayers = ~0;
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.zero;
         aimTimer = GameGlobals.Instance.beastDuration;
@@ -143,7 +146,13 @@ public class EagleBeast : Beast
                 continue;
 
             if (Vector2.Dot(direction, offset.normalized) >= minDot)
-                target.AddForce(Vector2.right * boomDirection * GameGlobals.Instance.eagleBoomKnockback, ForceMode2D.Impulse);
+            {
+                float knockback = GameGlobals.Instance.eagleBoomKnockback;
+                if (!targetState.IsConscious)
+                    knockback *= GameGlobals.Instance.unconsciousEagleKnockbackMultiplier;
+
+                target.AddForce(Vector2.right * boomDirection * knockback, ForceMode2D.Impulse);
+            }
         }
 
         visual.PlayBoomRpc(rb.position, aimAngle);
@@ -162,6 +171,7 @@ public class EagleBeast : Beast
         if (phase != EagleVisual.Phase.Inactive)
         {
             rb.gravityScale = originalGravity;
+            rb.excludeLayers = originalExcludedLayers;
         }
 
         phase = EagleVisual.Phase.Inactive;
