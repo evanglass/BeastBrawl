@@ -300,6 +300,10 @@ MonoBehaviour:
     playerNumber: {fileID: 800100243}
     iconLabel: {fileID: 800100273}
     portrait: {fileID: 800101033}
+  hawkPortrait: {fileID: 21300004, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
+  blackBearPortrait: {fileID: 21300002, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
+  pantherPortrait: {fileID: 21300003, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
+  mambaPortrait: {fileID: 21300001, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
   eaglePortrait: {fileID: 21300004, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
   bearPortrait: {fileID: 21300002, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
   cougarPortrait: {fileID: 21300003, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
@@ -5508,6 +5512,14 @@ MonoBehaviour:
   winnerPortrait: {fileID: 800103033}
   winnerAnimation: {fileID: 800103043}
   returnButton: {fileID: 800103054}
+  hawkFrames:
+  - {fileID: 21300004, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
+  blackBearFrames:
+  - {fileID: 21300002, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
+  pantherFrames:
+  - {fileID: 21300003, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
+  mambaFrames:
+  - {fileID: 21300001, guid: 8e8919fd04935c73954009b3dfe2f536, type: 3}
   eagleFrames:
   - {fileID: 21300004, guid: 5e7ca2538add4b6eaa515e3fee2dc54b, type: 3}
   bearFrames:
@@ -5609,6 +5621,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   consciousnessRecoveryRate: 5
+  consciousnessRecoveryPerPress: 2
   consciousnessLossMultiplier: 2
   boundaryY: -22
   moveSpeed: 15
@@ -5620,12 +5633,56 @@ MonoBehaviour:
   maxJumps: 2
   punchDamage: 20
   punchCooldown: 0.2
+  punchReach: 1
   punchKnockback: {x: 20, y: 10}
+  unconsciousPunchKnockbackMultiplier: {x: 1, y: 1}
   beastMeterGainRate: 2
   beastMeterGainPerHit: 15
   beastDuration: 5
-  eagleBoomRange: 35
+  simulationMode: 1
+  botReactionDelay: {x: 0.005, y: 0.05}
+  botPunchCooldownExtra: {x: 0, y: 0.05}
+  botPunchReachMultiplier: {x: 0.8, y: 1.05}
+  botVisionDelay: {x: 0.005, y: 0.05}
+  botCenterAfterStall: 3
+  ChaseDurationMin: 4
+  ChaseDurationMax: 10
+  ChaseCooldownMin: 2
+  ChaseCooldownMax: 4
+  EagleAggressionMultiplier: 0.95
+  BearAggressionMultiplier: 1
+  CougarAggressionMultiplier: 0.9
+  SnakeAggressionMultiplier: 0.8
+  HawkAggressionMultiplier: 1.25
+  BlackBearAggressionMultiplier: 1.25
+  PantherAggressionMultiplier: 1.25
+  MambaAggressionMultiplier: 1.25
+  eagleBoomRange: 75
   eagleBoomHalfAngle: 15
+  eagleCornerSpeed: 30
+  eagleAimSpeed: 90
+  eagleBoomKnockback: 58
+  unconsciousEagleKnockbackMultiplier: 1
+  eagleFlightSpeed: 7
+  eagleFlightDuration: 2
+  bearMoveSpeedMultiplier: 0.5
+  bearPunchDamageMultiplier: 3
+  cougarMoveSpeedMultiplier: 3
+  cougarPunchCooldownMultiplier: 0.1
+  snakeBiteDelay: 0.25
+  hawkBoomRange: 75
+  hawkBoomHalfAngle: 15
+  hawkCornerSpeed: 30
+  hawkAimSpeed: 90
+  hawkBoomKnockback: 58
+  unconsciousHawkKnockbackMultiplier: 1
+  hawkFlightSpeed: 7
+  hawkFlightDuration: 2
+  blackBearMoveSpeedMultiplier: 0.5
+  blackBearPunchDamageMultiplier: 3
+  pantherMoveSpeedMultiplier: 3
+  pantherPunchCooldownMultiplier: 0.1
+  mambaBiteDelay: 0.25
 --- !u!4 &995121295
 Transform:
   m_ObjectHideFlags: 0
@@ -6509,6 +6566,15 @@ MonoBehaviour:
   minimumSize: 6
   horizontalPadding: 2
   verticalPadding: 2
+  mode: 1
+  clusterRefresh: 0.15
+  clusterPersistence: 0.5
+  mergeDistance: 8
+  splitDistance: 11
+  mergeSize: 9
+  splitSize: 11
+  finalTwoMaximumSize: 24
+  maximumTrackingSpeed: 30
 --- !u!1001 &360258286218151723
 PrefabInstance:
   m_ObjectHideFlags: 0

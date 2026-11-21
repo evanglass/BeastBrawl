@@ -32,6 +32,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Audio_Multiplayer_Test.unity
     guid: d15e92cee64984abbb1a891686d083ca
+  - enabled: 1
+    path: Assets/Scenes/Arena_05_EnchantedForest.unity
+    guid: ce77a59d02ad41fca6face6032e4cca7
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: cb42d5f5012c7f24395d97d2c29e28cf, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

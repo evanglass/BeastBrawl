@@ -16,6 +16,7 @@ public class PlayerBeast : NetworkBehaviour
     private bool isBeast = false;
     public bool IsBeast => isBeast;
     public bool AutoAttack => isBeast && currentBeast != null && currentBeast.AutoAttack;
+    internal bool AllowsFriendlyFire => isBeast && currentBeast?.AllowsFriendlyFire == true;
     public Collider2D AttackArea => isBeast && currentBeast != null ? currentBeast.AttackArea : null;
     public bool ControlsMovement => isBeast && currentBeast != null && currentBeast.ControlsMovement;
     public bool HandlesAttack => isBeast && currentBeast != null && currentBeast.HandlesAttack;
@@ -140,7 +141,10 @@ public class PlayerBeast : NetworkBehaviour
         EndBeast();
         isBeast = false;
         beastTimer = 0f;
-        currentBeast = character switch
+        currentBeast = GetBeastForCharacter(character);
+    }
+
+    internal Beast GetBeastForCharacter(PlayerVisual.Character character) => PlayerVisual.OriginalCharacter(character) switch
         {
             PlayerVisual.Character.Eagle => GetComponent<EagleBeast>(),
             PlayerVisual.Character.Bear => GetComponent<BearBeast>(),
@@ -148,5 +152,4 @@ public class PlayerBeast : NetworkBehaviour
             PlayerVisual.Character.Snake => GetComponent<SnakeBeast>(),
             _ => null
         };
-    }
 }

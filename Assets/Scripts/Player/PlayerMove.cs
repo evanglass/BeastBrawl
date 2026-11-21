@@ -30,6 +30,7 @@ public class PlayerMove : NetworkBehaviour
     public int Facing { get; private set; }
     public bool OnFloor => onFloor;
     public bool OnWall => onWall;
+    public int JumpsRemain => jumpsRemain;
     public Vector2 WallNormal => wallNormal;
 
     public void ResetForRound()
@@ -88,7 +89,7 @@ public class PlayerMove : NetworkBehaviour
         if (!IsSpawned)
             return;
 
-        if (!IsOwner && bridge.MoveHorizontal != 0f)
+        if ((!IsOwner || (IsServer && bridge.IsBotControlled)) && bridge.MoveHorizontal != 0f)
         {
             Facing = (int)Mathf.Sign(bridge.MoveHorizontal);
         }
@@ -126,7 +127,9 @@ public class PlayerMove : NetworkBehaviour
         if (!playerState.IsConscious)
             return;
 
-        float targetSpeed = bridge.MoveHorizontal * GameGlobals.Instance.moveSpeed * playerBeast.GetMoveSpeedMultiplier();
+        float platformSpeed = riderPlatform != null ? riderPlatform.RiderVelocity.x : 0f;
+        float targetSpeed = platformSpeed +
+            bridge.MoveHorizontal * GameGlobals.Instance.moveSpeed * playerBeast.GetMoveSpeedMultiplier();
 
         float newSpeed = Mathf.MoveTowards(
             rb.linearVelocity.x,
@@ -176,12 +179,15 @@ public class PlayerMove : NetworkBehaviour
         onWall |= hitWall;
     }
 
+    private MovingPlatform riderPlatform;
+
     private void CheckContacts()
     {
         bool alreadyHaveJumps = onFloor || onWall;
 
         onFloor = false;
         onWall = false;
+        riderPlatform = null;
 
         int contactCount = rb.GetContacts(contacts);
 
@@ -190,6 +196,9 @@ public class PlayerMove : NetworkBehaviour
             if (contacts[i].collider.gameObject.CompareTag("Level Geometry"))
             {
                 CheckContact(contacts[i].normal);
+                if (contacts[i].normal.y > 0.5f &&
+                    contacts[i].collider.TryGetComponent(out MovingPlatform platform) && platform.CarryRiders)
+                    riderPlatform = platform;
             }
         }
 

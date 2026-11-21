@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Mamba
+  m_Controller: {fileID: 9100000, guid: fdfd0df77a8088c46aa3cd37a449bf07, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 1dd48440709c04247be9909673cdb720, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 03509c512b3a5353900fb0680636fe1d, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 3ea0960ba24176a4f8f5d134c534530a, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6a0c5dbbbdee5a31905ba8dc71ae67cb, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 589be8b7bb5714a4e9e001ed395d3963, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 0b45758b8f965ddbbab166176b3ae801, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: e80d50234bfc45a6bc8f723b9f892de0, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 5f061656a92f5185946fe1d0fb0ba9aa, type: 2}

@@ -30,5 +30,22 @@
   "bearPunchDamageMultiplier": 3,
   "cougarMoveSpeedMultiplier": 3,
   "cougarPunchCooldownMultiplier": 0.1,
-  "snakeBiteDelay": 1.5
+  "snakeBiteDelay": 1.5,
+  "hawkBoomRange": 90,
+  "hawkBoomHalfAngle": 15,
+  "hawkCornerSpeed": 15,
+  "hawkAimSpeed": 90,
+  "hawkBoomKnockback": 67.5,
+  "unconsciousHawkKnockbackMultiplier": 1,
+  "hawkFlightSpeed": 10,
+  "hawkFlightDuration": 2,
+  "blackBearMoveSpeedMultiplier": 0.8,
+  "blackBearPunchDamageMultiplier": 3,
+  "pantherMoveSpeedMultiplier": 3,
+  "pantherPunchCooldownMultiplier": 0.1,
+  "mambaBiteDelay": 1.5,
+  "HawkAggressionMultiplier": 1,
+  "BlackBearAggressionMultiplier": 1,
+  "PantherAggressionMultiplier": 1,
+  "MambaAggressionMultiplier": 1
 }

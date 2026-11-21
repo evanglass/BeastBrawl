@@ -59,6 +59,15 @@ public class PlayerState : MonoBehaviour
             return;
         }
 
+        ReduceConsciousness(amount);
+        if (shouldRechargeBeastMeter)
+            beastMeter = Mathf.Clamp(beastMeter + GameGlobals.Instance.beastMeterGainPerHit, 0f, 100f);
+    }
+
+    // Environmental exposure uses the same KO rules without counting as a landed punch.
+    internal void ReduceConsciousness(float amount)
+    {
+        if (!isConscious) return;
         float consciousnessMultiplier = 1 + timesLostConsciousness * GameGlobals.Instance.consciousnessLossMultiplier;
         consciousness -= amount * consciousnessMultiplier;
         if (consciousness <= 0f)
@@ -67,9 +76,6 @@ public class PlayerState : MonoBehaviour
             timesLostConsciousness++;
             isConscious = false;
         }
-
-        if (shouldRechargeBeastMeter)
-            beastMeter = Mathf.Clamp(beastMeter + GameGlobals.Instance.beastMeterGainPerHit, 0f, 100f);
     }
 
     public void KnockOut()

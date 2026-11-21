@@ -20,6 +20,39 @@ public class PlayerPunch : NetworkBehaviour
     private PlayerBeast playerBeast;
     private Rigidbody2D rb;
 
+    private readonly NetworkVariable<uint> confirmedBotSwings = new(0,
+        NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+    internal uint ConfirmedBotSwings => confirmedBotSwings.Value;
+
+    internal bool TryGetBotAttackBounds(int facing, float reachScale, out Bounds bounds)
+    {
+        var beastArea = playerBeast.AttackArea;
+        var area = beastArea != null ? beastArea : punchArea;
+        bounds = default;
+        if (area == null || !area.isActiveAndEnabled || punchPivot == null) return false;
+
+        bounds = area.bounds;
+        Vector3 center = bounds.center;
+        Vector3 size = bounds.size;
+        float pivotX = punchPivot.position.x;
+        if (beastArea == null && area is BoxCollider2D)
+        {
+            // The server sizes the normal attack box on spawn; use the same width on bot workers.
+            size.x = GameGlobals.Instance.punchReach * Mathf.Abs(area.transform.lossyScale.x);
+            center.x = pivotX + facing * size.x * 0.5f;
+        }
+        else if (area.transform.IsChildOf(punchPivot) &&
+            facing != (punchPivot.localScale.x < 0f ? -1 : 1))
+        {
+            center.x = pivotX * 2f - center.x;
+        }
+
+        center.x = pivotX + (center.x - pivotX) * reachScale;
+        size.x *= reachScale;
+        bounds = new Bounds(center, size);
+        return true;
+    }
+
     private Collider2D[] hits = new Collider2D[10];
 
     public void ResetForRound()
@@ -106,8 +139,9 @@ public class PlayerPunch : NetworkBehaviour
 
         cooldown = GameGlobals.Instance.punchCooldown * playerBeast.GetPunchCooldownMultiplier();
         var visual = GetComponent<PlayerVisual>();
-        bool cougarBeast = playerBeast.IsBeast && visual.PlayerCharacter == PlayerVisual.Character.Cougar;
-        bool bearBeast = playerBeast.IsBeast && visual.PlayerCharacter == PlayerVisual.Character.Bear;
+        var original = PlayerVisual.OriginalCharacter(visual.PlayerCharacter);
+        bool cougarBeast = playerBeast.IsBeast && original == PlayerVisual.Character.Cougar;
+        bool bearBeast = playerBeast.IsBeast && original == PlayerVisual.Character.Bear;
         if (!playerBeast.AutoAttack)
         {
             if (cougarBeast || bearBeast) visual.PlayBeastPunchRpc();
@@ -126,6 +160,8 @@ public class PlayerPunch : NetworkBehaviour
         Physics2D.SyncTransforms();
         int hitCount = activeArea.Overlap(filter, hits);
 
+        bool landed = false;
+        bool trackSwing = bridge.IsBotControlled && !playerBeast.IsBeast;
         for (int i = 0; i < hitCount; i++)
         {
             GameObject other = hits[i].gameObject;
@@ -135,8 +171,10 @@ public class PlayerPunch : NetworkBehaviour
             }
 
             PlayerPunch otherPunch = other.GetComponent<PlayerPunch>();
-            if (otherPunch != null)
+            if (otherPunch != null &&
+                bridge.CanAffect(otherPunch.bridge, playerBeast.AllowsFriendlyFire))
             {
+                landed |= !otherPunch.playerState.Eliminated;
                 bool wasBeast = playerBeast.IsBeast;
                 otherPunch.ApplyPunch(bridge, playerBeast.GetPunchDamageMultiplier(), playerBeast.GetPunchKnockbackMultiplier());
                 playerBeast.Attack(other);
@@ -144,6 +182,7 @@ public class PlayerPunch : NetworkBehaviour
                     break;
             }
         }
+        if (trackSwing && landed) confirmedBotSwings.Value++;
     }
 
     private void ApplyPunch(PlayerNetworkBridge attacker, float punchDamageMultiplier, float knockbackMultiplier)

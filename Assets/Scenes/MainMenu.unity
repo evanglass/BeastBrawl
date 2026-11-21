@@ -696,7 +696,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Online Game
+  m_Text: Play Game
 --- !u!1 &700
 GameObject:
   m_ObjectHideFlags: 0

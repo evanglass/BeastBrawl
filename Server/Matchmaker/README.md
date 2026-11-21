@@ -4,6 +4,19 @@ The matchmaker accepts the same WebSocket connection used by the game client. It
 
 The matchmaker and game servers listen on loopback only by default. A TLS WebSocket reverse proxy exposes `beastnet.evanglass.me:18773` and forwards requests to the matchmaker at `127.0.0.1:18774`. The matchmaker forwards WebSocket messages to room processes on local ports starting at 20000. This also supports Web clients; no client-side room address or additional public room ports are required.
 
+## Custom games
+
+Keep the same TLS proxy and forward both standard HTTP requests and WebSocket upgrades:
+
+- `GET /custom/lobbies` lists only configured custom rooms with available human slots.
+- WebSocket `/custom/host` creates a dedicated custom room. The first human owns setup and the room stays hidden until Unity accepts their configuration.
+- WebSocket `/custom/join/{id}` connects to the selected room. A stale, started, full, or closed room rejects the connection.
+- WebSocket `/` continues using the existing four-player quick match queue.
+
+Unity publishes occupancy to the matchmaker over the room process's stdout. Clients cannot publish listings. Human slots are validated again by the dedicated server before the lobby can start. Custom rooms can run server-owned bots without starting an additional worker process. In an all-bot custom roster the host spectates, and the room is not listed because it has no human slots.
+
+Deploy matching Unity client and Linux dedicated-server builds along with this matchmaker update. Configure the NGO setup's `onlineAddress` and `onlinePort` to point to the TLS proxy. Desktop clients can override them with `-custom-endpoint HOST PORT`; this changes the browser's endpoint and does not automatically join a game. Public discovery is unavailable on the older backend.
+
 ## Build and run
 
 1. Build a **Linux dedicated server** for the same project and version as the clients. Include `NGO_Setup`, the main menu, and arena scenes in the build. The Unity server must include the `FERAL_MATCHMAKER_ROOM_CLOSED` log message in `MatchManager` so that started matches stop accepting replacements.

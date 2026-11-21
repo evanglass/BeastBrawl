@@ -715,6 +715,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVisual
   ShowTopMostFoldoutHeaderGroup: 1
+  hawkAnimator: {fileID: 22100000, guid: 791e6adbe12a586282b4cdf252c641ac, type: 2}
+  blackBearAnimator: {fileID: 22100000, guid: 2160c58a7b655582b99aa9a18dd71035, type: 2}
+  pantherAnimator: {fileID: 22100000, guid: 81535561c8e859f89d09969a9cc94c43, type: 2}
+  mambaAnimator: {fileID: 22100000, guid: 7dc27bca6c30521bbefb2098a31d2af9, type: 2}
   beastMeterFill: {fileID: 7700000000000000032}
 --- !u!95 &3074723657816739298
 Animator:

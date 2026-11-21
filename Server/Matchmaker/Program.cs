@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Text.Json;
 
 var options = MatchmakerOptions.FromEnvironment();
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +15,21 @@ app.UseWebSockets();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
-app.Map("/", async context =>
+app.MapGet("/custom/lobbies", (HttpContext context) =>
+{
+    context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+    context.Response.Headers["Cache-Control"] = "no-store";
+    return Results.Ok(new { lobbies = rooms.ListCustomLobbies() });
+});
+app.MapGet("/", context => RelayRoom(context, () => rooms.TryReserve(), StatusCodes.Status503ServiceUnavailable));
+app.MapGet("/custom/host", context =>
+    RelayRoom(context, () => rooms.TryHostCustom(), StatusCodes.Status503ServiceUnavailable));
+app.MapGet("/custom/join/{id:guid}", (HttpContext context, Guid id) =>
+    RelayRoom(context, () => rooms.TryJoinCustom(id), StatusCodes.Status404NotFound));
+
+await app.RunAsync();
+
+async Task RelayRoom(HttpContext context, Func<RoomLease?> reserve, int unavailableStatus)
 {
     if (!context.WebSockets.IsWebSocketRequest)
     {
@@ -25,7 +40,7 @@ app.Map("/", async context =>
     RoomLease? lease;
     try
     {
-        lease = rooms.TryReserve();
+        lease = reserve();
     }
     catch (Exception exception)
     {
@@ -36,7 +51,7 @@ app.Map("/", async context =>
 
     if (lease == null)
     {
-        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        context.Response.StatusCode = unavailableStatus;
         return;
     }
 
@@ -57,9 +72,7 @@ app.Map("/", async context =>
             app.Logger.LogWarning("Room {Room} connection ended: {Message}", lease.Room.Port, exception.Message);
         }
     }
-});
-
-await app.RunAsync();
+}
 
 static async Task<ClientWebSocket> ConnectToRoom(Room room, TimeSpan timeout, CancellationToken cancellationToken)
 {
@@ -177,6 +190,9 @@ sealed class MatchmakerOptions
     }
 }
 
+sealed record CustomListing(string host, int mode, int teamSize, int occupied, int capacity, int availableHumans,
+    int humanCapacity);
+
 sealed class Room
 {
     public required int Port { get; init; }
@@ -184,6 +200,9 @@ sealed class Room
     public int Connections { get; set; }
     public bool Sealed { get; set; }
     public bool JoiningClosed;
+    public Guid Id { get; } = Guid.NewGuid();
+    public bool Custom { get; init; }
+    public CustomListing? Listing;
 }
 
 sealed class RoomLease : IDisposable
@@ -229,57 +248,111 @@ sealed class RoomManager
             if (stopping)
                 return null;
 
-            Room? room = rooms.Find(item => !item.Sealed && !Volatile.Read(ref item.JoiningClosed) && !item.Process.HasExited);
-            if (room == null)
-            {
-                if (rooms.Count >= options.MaxRooms)
-                    return null;
-
-                int? port = FindAvailablePort();
-                if (!port.HasValue)
-                    return null;
-
-                var start = new ProcessStartInfo(options.ServerExecutable)
-                {
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    WorkingDirectory = Path.GetDirectoryName(options.ServerExecutable)!
-                };
-                start.ArgumentList.Add("-batchmode");
-                start.ArgumentList.Add("-nographics");
-                start.ArgumentList.Add("-logFile");
-                start.ArgumentList.Add("-");
-                start.ArgumentList.Add("-port");
-                start.ArgumentList.Add(port.Value.ToString());
-                Process process = Process.Start(start) ?? throw new InvalidOperationException("Could not launch game server.");
-                room = new Room { Port = port.Value, Process = process };
-                Room startedRoom = room;
-                process.OutputDataReceived += (_, message) =>
-                {
-                    if (message.Data == null)
-                        return;
-                    if (message.Data.Contains("FERAL_MATCHMAKER_ROOM_CLOSED", StringComparison.Ordinal))
-                        Volatile.Write(ref startedRoom.JoiningClosed, true);
-                    else
-                        logger.LogDebug("Room {Port}: {Message}", startedRoom.Port, message.Data);
-                };
-                process.ErrorDataReceived += (_, message) =>
-                {
-                    if (message.Data != null)
-                        logger.LogWarning("Room {Port}: {Message}", startedRoom.Port, message.Data);
-                };
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                rooms.Add(room);
-                logger.LogInformation("Started room on port {Port}, process {ProcessId}.", room.Port, process.Id);
-            }
-
+            Room? room = rooms.Find(item => !item.Custom && !item.Sealed &&
+                !Volatile.Read(ref item.JoiningClosed) && !item.Process.HasExited);
+            room ??= StartRoom(custom: false);
+            if (room == null) return null;
             room.Connections++;
-            if (room.Connections == PlayersPerRoom)
-                room.Sealed = true;
+            if (room.Connections == PlayersPerRoom) room.Sealed = true;
             return new RoomLease(this, room);
         }
+    }
+
+    public RoomLease? TryHostCustom()
+    {
+        lock (gate)
+        {
+            if (stopping) return null;
+            var room = StartRoom(custom: true);
+            if (room == null) return null;
+            room.Connections = 1;
+            return new RoomLease(this, room);
+        }
+    }
+
+    public RoomLease? TryJoinCustom(Guid id)
+    {
+        lock (gate)
+        {
+            if (stopping) return null;
+            var room = rooms.Find(entry => entry.Custom && entry.Id == id);
+            if (room == null || !TryGetJoinable(room, out _)) return null;
+            room.Connections++;
+            return new RoomLease(this, room);
+        }
+    }
+
+    public object[] ListCustomLobbies()
+    {
+        lock (gate)
+        {
+            var listings = new List<object>();
+            foreach (var room in rooms)
+            {
+                if (!room.Custom || !TryGetJoinable(room, out var listing)) continue;
+                listings.Add(new
+                {
+                    id = room.Id, listing.host, listing.mode, listing.teamSize, listing.occupied,
+                    listing.capacity, availableHumans = Math.Min(listing.availableHumans,
+                        listing.humanCapacity - room.Connections)
+                });
+            }
+            return listings.ToArray();
+        }
+    }
+
+    private static bool TryGetJoinable(Room room, out CustomListing listing)
+    {
+        listing = Volatile.Read(ref room.Listing)!;
+        return !Volatile.Read(ref room.JoiningClosed) && !room.Process.HasExited &&
+            listing is { availableHumans: > 0 } && room.Connections < listing.humanCapacity;
+    }
+
+    private Room? StartRoom(bool custom)
+    {
+        if (rooms.Count >= options.MaxRooms || FindAvailablePort() is not int port) return null;
+
+        var start = new ProcessStartInfo(options.ServerExecutable)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = Path.GetDirectoryName(options.ServerExecutable)!
+        };
+        foreach (var arg in new[] { "-batchmode", "-nographics", "-logFile", "-", "-port", port.ToString() })
+            start.ArgumentList.Add(arg);
+        if (custom) start.ArgumentList.Add("-custom-games");
+        Process process = Process.Start(start) ?? throw new InvalidOperationException("Could not launch game server.");
+        var room = new Room { Port = port, Process = process, Custom = custom };
+        process.OutputDataReceived += (_, message) =>
+        {
+            if (message.Data == null) return;
+            if (message.Data.Contains("FERAL_MATCHMAKER_ROOM_CLOSED", StringComparison.Ordinal))
+                Volatile.Write(ref room.JoiningClosed, true);
+            else if (custom && message.Data.StartsWith("FERAL_CUSTOM_LOBBY ", StringComparison.Ordinal))
+            {
+                try
+                {
+                    var listing = JsonSerializer.Deserialize<CustomListing>(message.Data["FERAL_CUSTOM_LOBBY ".Length..]);
+                    Volatile.Write(ref room.Listing, listing);
+                }
+                catch (JsonException exception)
+                {
+                    logger.LogWarning(exception, "Invalid listing from room {Port}.", room.Port);
+                }
+            }
+            else logger.LogDebug("Room {Port}: {Message}", port, message.Data);
+        };
+        process.ErrorDataReceived += (_, message) =>
+        {
+            if (message.Data != null)
+                logger.LogWarning("Room {Port}: {Message}", port, message.Data);
+        };
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        rooms.Add(room);
+        logger.LogInformation("Started room on port {Port}, process {ProcessId}.", port, process.Id);
+        return room;
     }
 
     public void Release(Room room)
